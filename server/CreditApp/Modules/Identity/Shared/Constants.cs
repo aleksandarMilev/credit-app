@@ -16,7 +16,6 @@ public static class Constants
         public const int CredentialsMinLength = UsernameMinLength;
         public const int CredentialsMaxLength = EmailMaxLength;
 
-
         public const int NameMinLength = 2;
         public const int NameMaxLength = 100;
     }

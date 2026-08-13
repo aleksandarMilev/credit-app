@@ -61,6 +61,9 @@ public class IdentityService(
         {
             Email = serviceModel.Email,
             UserName = serviceModel.Username,
+            FirstName = serviceModel.FirstName,
+            LastName = serviceModel.LastName,
+            DateOfBirth = serviceModel.DateOfBirth,
             LockoutEnabled = true
         };
 
@@ -283,7 +286,7 @@ public class IdentityService(
         var tokenHandler = new JwtSecurityTokenHandler();
         tokenHandler.OutboundClaimTypeMap.Clear();
 
-        var key = Encoding.ASCII.GetBytes(appSettingsSecret);
+        var key = Encoding.UTF8.GetBytes(appSettingsSecret);
 
         var claimList = new List<Claim>
         {
