@@ -1,6 +1,10 @@
-﻿namespace CreditApp.Shared.Settings;
+namespace CreditApp.Shared.Settings;
 
-public record JwtSettings(
-    string Secret,
-    string Issuer = "CreditApp",
-    string Audience = "CreditAppClient");
+public class JwtSettings
+{
+    public string Secret { get; set; } = string.Empty;
+
+    public string Issuer { get; set; } = "CreditApp";
+
+    public string Audience { get; set; } = "CreditAppClient";
+}

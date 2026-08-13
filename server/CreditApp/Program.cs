@@ -88,3 +88,5 @@ if (appEnvIsDev)
 }
 
 await app.RunAsync(canceltationToken);
+
+public partial class Program { }

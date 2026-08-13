@@ -32,6 +32,7 @@ public sealed class UserDbModelConfiguration : IEntityTypeConfiguration<UserDbMo
 
         builder
           .Property(static p => p.DateOfBirth)
-          .IsRequired();
+          .IsRequired()
+          .HasColumnType("date");
     }
 }

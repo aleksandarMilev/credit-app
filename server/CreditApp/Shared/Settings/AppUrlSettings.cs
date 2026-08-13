@@ -1,3 +1,6 @@
-﻿namespace CreditApp.Shared.Settings;
+namespace CreditApp.Shared.Settings;
 
-public record AppUrlsSettings(string ClientBaseUrl);
+public class AppUrlsSettings
+{
+    public string ClientBaseUrl { get; set; } = string.Empty;
+}

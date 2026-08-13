@@ -1,6 +1,10 @@
 namespace CreditApp.Shared.Settings;
 
-public record SeedUserSettings(
-    string Username,
-    string Email,
-    string Password);
+public class SeedUserSettings
+{
+    public string Username { get; set; } = string.Empty;
+
+    public string Email { get; set; } = string.Empty;
+
+    public string Password { get; set; } = string.Empty;
+}

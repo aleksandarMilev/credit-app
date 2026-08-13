@@ -1,9 +1,16 @@
-﻿namespace CreditApp.Shared.Settings;
+namespace CreditApp.Shared.Settings;
 
-public record EmailSettings(
-    string Host,
-    int Port,
-    string Username,
-    string Password,
-    string From,
-    bool UseSsl);
+public class EmailSettings
+{
+    public string Host { get; set; } = string.Empty;
+
+    public int Port { get; set; }
+
+    public string Username { get; set; } = string.Empty;
+
+    public string Password { get; set; } = string.Empty;
+
+    public string From { get; set; } = string.Empty;
+
+    public bool UseSsl { get; set; }
+}
