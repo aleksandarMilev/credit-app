@@ -4,9 +4,11 @@ using Data;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Modules.Identity.Data.Models;
 using Modules.Identity.Service;
 using Modules.Identity.Service.Models;
+using Settings;
 
 using static Shared.Constants.Cors;
 using static Shared.Constants.Names;
@@ -71,17 +73,43 @@ public static class AppBuilderExtensions
                 .ApplicationServices
                 .CreateScope();
 
-            var identityService = serviceScope
-                .ServiceProvider
+            var services = serviceScope.ServiceProvider;
+
+            var logger = services
+                .GetRequiredService<ILoggerFactory>()
+                .CreateLogger("SeedUser");
+
+            var seedUserSettings = services
+                .GetRequiredService<IOptions<SeedUserSettings>>()
+                .Value;
+
+            var seedUserIsNotConfigured =
+                string.IsNullOrWhiteSpace(seedUserSettings.Username) ||
+                string.IsNullOrWhiteSpace(seedUserSettings.Email) ||
+                string.IsNullOrWhiteSpace(seedUserSettings.Password);
+
+            if (seedUserIsNotConfigured)
+            {
+                logger.LogWarning(
+                    "SeedUserSettings is not configured — skipping built-in user seeding.");
+
+                return app;
+            }
+
+            const string SeedFirstName = "Seed";
+            const string SeedLastName = "User";
+            var seedDateOfBirth = new DateTime(2000, 1, 1);
+
+            var identityService = services
                 .GetRequiredService<IIdentityService>();
 
             var serviceModel = new RegisterServiceModel(
-                "mileww.sasho",
-                "aleksandarmilev23@gmail.com",
-                "123456",
-                "Alexandar",
-                "Milev",
-                new DateTime(2001, 2, 8));
+                seedUserSettings.Username,
+                seedUserSettings.Email,
+                seedUserSettings.Password,
+                SeedFirstName,
+                SeedLastName,
+                seedDateOfBirth);
 
             await identityService.Register(
                 serviceModel,

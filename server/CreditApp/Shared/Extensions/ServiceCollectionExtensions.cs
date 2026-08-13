@@ -129,6 +129,9 @@ public static class ServiceCollectionExtensions
             services.Configure<AppUrlsSettings>(
                 configuration.GetSection(nameof(AppUrlsSettings)));
 
+            services.Configure<SeedUserSettings>(
+                configuration.GetSection(nameof(SeedUserSettings)));
+
             return services;
         }
 
