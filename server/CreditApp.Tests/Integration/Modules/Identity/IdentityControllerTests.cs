@@ -11,12 +11,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using TestHelpers;
 
-public class IdentityControllerTests : IClassFixture<CustomWebApplicationFactory>
+public class IdentityControllerTests(
+    CustomWebApplicationFactory factory) : IClassFixture<CustomWebApplicationFactory>
 {
-    private readonly HttpClient client;
-
-    public IdentityControllerTests(CustomWebApplicationFactory factory)
-        => this.client = factory.CreateClient();
+    private readonly HttpClient client = factory.CreateClient();
 
     private static RegisterWebModel ValidRegisterPayload(string suffix)
         => new()

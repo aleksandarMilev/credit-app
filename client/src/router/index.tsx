@@ -1,5 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom'
 import { RootLayout } from '@/layouts/RootLayout'
+import { CalculatorPage } from '@/pages/CalculatorPage'
 import { HomePage } from '@/pages/HomePage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 
@@ -11,6 +12,10 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: <HomePage />,
+      },
+      {
+        path: 'calculator',
+        element: <CalculatorPage />,
       },
     ],
   },
