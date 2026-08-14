@@ -17,10 +17,10 @@ export const CalculatorPage = () => {
     <div className="flex min-h-screen flex-col items-center bg-gradient-to-b from-indigo-50 via-white to-white px-4 py-10 sm:px-6 sm:py-16 lg:px-8">
       <div className="max-w-2xl text-center">
         <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-          Loan calculator
+          Кредитен калкулатор
         </h1>
         <p className="mt-3 text-base text-gray-600 sm:text-lg">
-          Estimate your monthly payment in seconds — no account needed.
+          Изчислете месечната си вноска за секунди — не се изисква регистрация.
         </p>
       </div>
 

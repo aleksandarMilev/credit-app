@@ -1,15 +1,21 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { LoanCalculator } from '@/components/LoanCalculator'
+import { formatCurrency } from '@/lib/formatCurrency'
+
+// React Testing Library's default text normalizer collapses all whitespace
+// (including the non-breaking space Intl.NumberFormat uses) to a plain space
+// before matching — normalize our expected currency string the same way.
+const normalizeWhitespace = (value: string) => value.replace(/\s/g, ' ')
 
 const setLoanInputs = async (amount: string, termMonths: string) => {
   const user = userEvent.setup()
 
-  const amountInput = screen.getByLabelText(/loan amount/i)
+  const amountInput = screen.getByLabelText('Сума на кредита')
   await user.clear(amountInput)
   await user.type(amountInput, amount)
 
-  const termInput = screen.getByLabelText(/term/i)
+  const termInput = screen.getByLabelText('Срок (месеци)')
   await user.clear(termInput)
   await user.type(termInput, termMonths)
 
@@ -22,16 +28,16 @@ describe('LoanCalculator', () => {
 
     await setLoanInputs('1200', '12')
 
-    expect(screen.getByText('100.00')).toBeInTheDocument()
-    expect(screen.getByText('1200.00')).toBeInTheDocument()
-    expect(screen.getByText('0.00')).toBeInTheDocument()
+    expect(screen.getByText(normalizeWhitespace(formatCurrency(100)))).toBeInTheDocument()
+    expect(screen.getByText(normalizeWhitespace(formatCurrency(1200)))).toBeInTheDocument()
+    expect(screen.getByText(normalizeWhitespace(formatCurrency(0)))).toBeInTheDocument()
   })
 
   it('does not render an apply button when onApply is not provided', () => {
     render(<LoanCalculator annualInterestRate={5} />)
 
     expect(
-      screen.queryByRole('button', { name: /apply with these terms/i }),
+      screen.queryByRole('button', { name: 'Кандидатствайте с тези условия' }),
     ).not.toBeInTheDocument()
   })
 
@@ -40,7 +46,7 @@ describe('LoanCalculator', () => {
     render(<LoanCalculator annualInterestRate={0} onApply={handleApply} />)
 
     const user = await setLoanInputs('1200', '12')
-    await user.click(screen.getByRole('button', { name: /apply with these terms/i }))
+    await user.click(screen.getByRole('button', { name: 'Кандидатствайте с тези условия' }))
 
     expect(handleApply).toHaveBeenCalledTimes(1)
     expect(handleApply).toHaveBeenCalledWith(1200, 12)

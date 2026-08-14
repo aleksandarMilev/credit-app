@@ -5,6 +5,6 @@ import { HomePage } from '@/pages/HomePage'
 describe('HomePage', () => {
   it('renders the heading', () => {
     renderWithProviders(<HomePage />)
-    expect(screen.getByRole('heading', { name: /home/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Начало' })).toBeInTheDocument()
   })
 })
