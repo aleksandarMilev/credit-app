@@ -1,4 +1,5 @@
 import { useId, useState } from 'react'
+import { formatCurrency } from '@/lib/formatCurrency'
 import { calculateLoan } from '@/lib/loanCalculations'
 
 interface LoanCalculatorProps {
@@ -32,13 +33,13 @@ export const LoanCalculator = ({ annualInterestRate, onApply }: LoanCalculatorPr
 
   return (
     <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl ring-1 ring-gray-900/5 sm:p-8">
-      <h2 className="text-xl font-semibold text-gray-900 sm:text-2xl">Loan calculator</h2>
-      <p className="mt-1 text-sm text-gray-500">See your estimated monthly payment instantly.</p>
+      <h2 className="text-xl font-semibold text-gray-900 sm:text-2xl">Кредитен калкулатор</h2>
+      <p className="mt-1 text-sm text-gray-500">Вижте прогнозната си месечна вноска веднага.</p>
 
       <div className="mt-6 space-y-5">
         <div>
           <label htmlFor={amountId} className="block text-sm font-medium text-gray-700">
-            Loan amount
+            Сума на кредита
           </label>
           <input
             id={amountId}
@@ -56,7 +57,7 @@ export const LoanCalculator = ({ annualInterestRate, onApply }: LoanCalculatorPr
 
         <div>
           <label htmlFor={termId} className="block text-sm font-medium text-gray-700">
-            Term (months)
+            Срок (месеци)
           </label>
           <input
             id={termId}
@@ -73,34 +74,29 @@ export const LoanCalculator = ({ annualInterestRate, onApply }: LoanCalculatorPr
         </div>
       </div>
 
-      {/*
-        TODO: plain .toFixed(2) for now — swap for Intl.NumberFormat with the
-        correct locale/currency once the target currency is confirmed (see
-        product-description.md — currency is not yet decided).
-      */}
       <dl className="mt-6 grid grid-cols-1 gap-4 rounded-xl bg-gray-50 p-4 sm:grid-cols-3">
         <div>
           <dt className="text-xs font-medium tracking-wide text-gray-500 uppercase">
-            Monthly payment
+            Месечна вноска
           </dt>
           <dd className="mt-1 text-lg font-semibold text-gray-900 sm:text-xl">
-            {monthlyPayment.toFixed(2)}
+            {formatCurrency(monthlyPayment)}
           </dd>
         </div>
         <div>
           <dt className="text-xs font-medium tracking-wide text-gray-500 uppercase">
-            Total repayment
+            Обща сума за връщане
           </dt>
           <dd className="mt-1 text-lg font-semibold text-gray-900 sm:text-xl">
-            {totalRepayment.toFixed(2)}
+            {formatCurrency(totalRepayment)}
           </dd>
         </div>
         <div>
           <dt className="text-xs font-medium tracking-wide text-gray-500 uppercase">
-            Total interest
+            Обща лихва
           </dt>
           <dd className="mt-1 text-lg font-semibold text-gray-900 sm:text-xl">
-            {totalInterest.toFixed(2)}
+            {formatCurrency(totalInterest)}
           </dd>
         </div>
       </dl>
@@ -112,7 +108,7 @@ export const LoanCalculator = ({ annualInterestRate, onApply }: LoanCalculatorPr
           disabled={!hasValidInput}
           className="mt-6 w-full rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:text-base"
         >
-          Apply with these terms
+          Кандидатствайте с тези условия
         </button>
       )}
     </div>
