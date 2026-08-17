@@ -3,11 +3,14 @@ namespace CreditApp.Shared.Data.Migrations;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 [DbContext(typeof(CreditAppDbContext))]
-partial class CreditAppDbContextModelSnapshot : ModelSnapshot
+[Migration("20260817172132_InitialCreate")]
+partial class InitialCreate
 {
-    protected override void BuildModel(ModelBuilder modelBuilder)
+    /// <inheritdoc />
+    protected override void BuildTargetModel(ModelBuilder modelBuilder)
     {
 #pragma warning disable 612, 618
         modelBuilder

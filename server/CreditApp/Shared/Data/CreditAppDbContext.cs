@@ -3,14 +3,21 @@ namespace CreditApp.Shared.Data;
 using System.Reflection;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Models.Base;
+using Modules.Applications.Data.Configuration;
+using Modules.Applications.Data.Models;
 using Modules.Identity.Data.Models;
 using Services.CurrentUser;
+using Settings;
 
 public class CreditAppDbContext(
     DbContextOptions<CreditAppDbContext> options,
-    ICurrentUserService userService) : IdentityDbContext<UserDbModel>(options)
+    ICurrentUserService userService,
+    IOptions<EgnEncryptionSettings> egnEncryptionSettings) : IdentityDbContext<UserDbModel>(options)
 {
+    public DbSet<ApplicationDbModel> Applications { get; init; } 
+
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
         this.ApplyAuditInfo();
@@ -34,7 +41,11 @@ public class CreditAppDbContext(
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.ApplyConfigurationsFromAssembly(
-            Assembly.GetExecutingAssembly());
+            Assembly.GetExecutingAssembly(),
+            type => type != typeof(ApplicationDbModelConfiguration));
+
+        modelBuilder.ApplyConfiguration(
+            new ApplicationDbModelConfiguration(egnEncryptionSettings));
     }
 
     private void ApplyAuditInfo()

@@ -1,12 +1,12 @@
-﻿namespace CreditApp.Modules.Email.Templates;
+namespace CreditApp.Modules.Email.Templates;
 
 using static System.Net.WebUtility;
 
-public static class PasswordResetEmailTemplate
+public static class ApplicationRejectedEmailTemplate
 {
-    public static string Build(string resetUrl)
+    public static string Build(string applicantName)
     {
-        var safeUrl = HtmlEncode(resetUrl);
+        var safeName = HtmlEncode(applicantName);
 
         return $"""
             <!DOCTYPE html>
@@ -27,27 +27,20 @@ public static class PasswordResetEmailTemplate
                                 </tr>
                                 <tr>
                                     <td style="padding:32px;">
-                                        <h1 style="margin:0 0 16px; font-size:22px; color:#111827;">Нулиране на паролата</h1>
-                                        <p style="margin:0 0 24px; font-size:15px; line-height:1.6; color:#374151;">
-                                            Получихме заявка за нулиране на вашата парола. Натиснете бутона по-долу, за да
-                                            изберете нова парола. Тази връзка ще изтече скоро от съображения за сигурност.
+                                        <h1 style="margin:0 0 16px; font-size:22px; color:#111827;">Относно Вашата заявка</h1>
+                                        <p style="margin:0 0 16px; font-size:15px; line-height:1.6; color:#374151;">
+                                            Уважаеми/а {safeName},
                                         </p>
-                                        <table role="presentation" cellpadding="0" cellspacing="0">
-                                            <tr>
-                                                <td style="border-radius:6px; background-color:#1e3a8a;">
-                                                    <a href="{safeUrl}" style="display:inline-block; padding:12px 24px; font-size:15px; color:#ffffff; text-decoration:none; font-weight:bold;">
-                                                        Нулиране на паролата
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                        </table>
+                                        <p style="margin:0 0 24px; font-size:15px; line-height:1.6; color:#374151;">
+                                            Бихме искали да Ви уведомим, че след преглед на Вашата кредитна заявка,
+                                            на този етап не можем да я одобрим. Благодарим Ви за проявения интерес.
+                                        </p>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td style="padding:20px 32px; border-top:1px solid #e5e7eb;">
                                         <p style="margin:0; font-size:12px; color:#9ca3af;">
-                                            Ако не сте заявявали нулиране на паролата, можете спокойно да игнорирате този имейл —
-                                            паролата ви няма да бъде променена.
+                                            С уважение, Екипът на CreditApp
                                         </p>
                                     </td>
                                 </tr>

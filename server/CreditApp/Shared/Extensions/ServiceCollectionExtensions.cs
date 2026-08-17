@@ -132,6 +132,12 @@ public static class ServiceCollectionExtensions
             services.Configure<SeedUserSettings>(
                 configuration.GetSection(nameof(SeedUserSettings)));
 
+            services.Configure<FileStorageSettings>(
+                configuration.GetSection(nameof(FileStorageSettings)));
+
+            services.Configure<EgnEncryptionSettings>(
+                configuration.GetSection(nameof(EgnEncryptionSettings)));
+
             return services;
         }
 

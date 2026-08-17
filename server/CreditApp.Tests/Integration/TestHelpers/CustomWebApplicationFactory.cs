@@ -21,8 +21,14 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
         .WithPassword("creditapp_test")
         .Build();
 
+    private readonly string uploadsRootPath = Path.Combine(
+        Path.GetTempPath(),
+        "credit-app-tests",
+        Guid.NewGuid().ToString("N"));
+
     public CustomWebApplicationFactory()
     {
+        Environment.SetEnvironmentVariable("FileStorageSettings__UploadsRootPath", this.uploadsRootPath);
         // AddJwtAuthentication() reads JwtSettings eagerly at startup (before ConfigureWebHost's
         // hooks can apply), so overriding it via ConfigureAppConfiguration is too late — it must
         // already be visible in the process environment (the same mechanism docker-compose uses)
@@ -62,5 +68,12 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
     }
 
     public new async Task DisposeAsync()
-        => await this.postgresContainer.DisposeAsync();
+    {
+        await this.postgresContainer.DisposeAsync();
+
+        if (Directory.Exists(this.uploadsRootPath))
+        {
+            Directory.Delete(this.uploadsRootPath, recursive: true);
+        }
+    }
 }

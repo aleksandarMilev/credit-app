@@ -187,7 +187,9 @@ public static class AppBuilderExtensions
                     LastName = seedUser.LastName
                 };
 
-                var createResult = await userManager.CreateAsync(user, seedUser.Password!);
+                var createResult = await userManager.CreateAsync(
+                    user,
+                    seedUser.Password!);
 
                 if (!createResult.Succeeded)
                 {

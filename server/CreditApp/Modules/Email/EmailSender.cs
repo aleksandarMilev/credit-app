@@ -17,8 +17,38 @@ public class EmailSender(
         CancellationToken cancellationToken = default)
         => await this.Send(
             email,
-            "Reset your CreditApp password",
+            "Променете вашата паролоа в CreditApp",
             PasswordResetEmailTemplate.Build(resetUrl),
+            cancellationToken);
+
+    public async Task SendApplicationSubmitted(
+        string email,
+        string applicantName,
+        CancellationToken cancellationToken = default)
+        => await this.Send(
+            email,
+            "Получихме Вашата кредитна заявка",
+            ApplicationSubmittedEmailTemplate.Build(applicantName),
+            cancellationToken);
+
+    public async Task SendApplicationApproved(
+        string email,
+        string applicantName,
+        CancellationToken cancellationToken = default)
+        => await this.Send(
+            email,
+            "Вашата кредитна заявка е одобрена",
+            ApplicationApprovedEmailTemplate.Build(applicantName),
+            cancellationToken);
+
+    public async Task SendApplicationRejected(
+        string email,
+        string applicantName,
+        CancellationToken cancellationToken = default)
+        => await this.Send(
+            email,
+            "Относно Вашата кредитна заявка",
+            ApplicationRejectedEmailTemplate.Build(applicantName),
             cancellationToken);
 
     private async Task Send(

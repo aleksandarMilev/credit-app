@@ -30,6 +30,8 @@ public static class Constants
         public const string ApproverRoleName = "Approver";
 
         public const string ViewerRoleName = "Viewer";
+
+        public const string AllStaffRoles = ApproverRoleName + "," + ViewerRoleName;
     }
 
     public static class Cors

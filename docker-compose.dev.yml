@@ -52,6 +52,8 @@ services:
       - SeedUserSettings__Viewer2Username=${SEED_VIEWER2_USERNAME}
       - SeedUserSettings__Viewer2Email=${SEED_VIEWER2_EMAIL}
       - SeedUserSettings__Viewer2Password=${SEED_VIEWER2_PASSWORD}
+      - FileStorageSettings__UploadsRootPath=${UPLOADS_ROOT_PATH}
+      - EgnEncryptionSettings__Key=${EGN_ENCRYPTION_KEY}
     volumes:
       - ./server:/src/server
       - ./server/CreditApp/wwwroot:/src/server/CreditApp/wwwroot
