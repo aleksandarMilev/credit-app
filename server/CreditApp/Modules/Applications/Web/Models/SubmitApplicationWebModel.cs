@@ -28,7 +28,7 @@ public class SubmitApplicationWebModel
 
     [Required(ErrorMessage = "Телефонният номер е задължителен.")]
     [RegularExpression(
-        @"^(\+[1-9][0-9]{7,14}|0[0-9]{7,14})$",
+        @"^(\+[1-9][0-9]{7,14}|0[1-9][0-9]{6,13})$",
         ErrorMessage = "Невалиден телефонен номер.")]
     public string Phone { get; init; } = default!;
 
