@@ -29,10 +29,6 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
     public CustomWebApplicationFactory()
     {
         Environment.SetEnvironmentVariable("FileStorageSettings__UploadsRootPath", this.uploadsRootPath);
-        // AddJwtAuthentication() reads JwtSettings eagerly at startup (before ConfigureWebHost's
-        // hooks can apply), so overriding it via ConfigureAppConfiguration is too late — it must
-        // already be visible in the process environment (the same mechanism docker-compose uses)
-        // by the time Program.cs's builder.Services.AddJwtAuthentication(...) call runs.
         Environment.SetEnvironmentVariable("JwtSettings__Secret", JwtSecret);
         Environment.SetEnvironmentVariable("JwtSettings__Issuer", JwtIssuer);
         Environment.SetEnvironmentVariable("JwtSettings__Audience", JwtAudience);
@@ -41,6 +37,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
         Environment.SetEnvironmentVariable("EmailSettings__Port", "1025");
         Environment.SetEnvironmentVariable("EmailSettings__From", "test@creditapp.local");
         Environment.SetEnvironmentVariable("EmailSettings__UseSsl", "false");
+        Environment.SetEnvironmentVariable("EgnEncryptionSettings__Key", "bjGBLrQ+FD0rPuzAB1YWEaGGz/tAdx1xIPDHhHstw/Y=");
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
