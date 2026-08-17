@@ -6,12 +6,18 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Modules.Identity.Data.Models;
-using Modules.Identity.Service;
-using Modules.Identity.Service.Models;
 using Settings;
 
 using static Shared.Constants.Cors;
 using static Shared.Constants.Names;
+
+internal sealed record SeedUserDefinition(
+    string? Username,
+    string? Email,
+    string? Password,
+    string Role,
+    string FirstName,
+    string LastName);
 
 public static class AppBuilderExtensions
 {
@@ -66,9 +72,32 @@ public static class AppBuilderExtensions
         public IApplicationBuilder UseAllowedCors()
             => app.UseCors(CorsPolicyName);
 
-        public async Task<IApplicationBuilder> UseBuiltInUser(
-            CancellationToken cancellationToken = default)
+        public async Task<IApplicationBuilder> UseBuiltInUser()
         {
+            static async Task EnsureRoleExists(
+                RoleManager<IdentityRole> roleManager,
+                string roleName,
+                ILogger logger)
+            {
+                if (await roleManager.RoleExistsAsync(roleName))
+                {
+                    return;
+                }
+
+                var role = new IdentityRole(roleName);
+                var result = await roleManager.CreateAsync(role);
+
+                if (!result.Succeeded)
+                {
+                    logger.LogError(
+                        "Failed to create role {Role}: {Errors}",
+                        roleName,
+                        string.Join(
+                            "; ",
+                            result.Errors.Select(static e => e.Description)));
+                }
+            }
+
             using var serviceScope = app
                 .ApplicationServices
                 .CreateScope();
@@ -83,199 +112,103 @@ public static class AppBuilderExtensions
                 .GetRequiredService<IOptions<SeedUserSettings>>()
                 .Value;
 
-            var seedUserIsNotConfigured =
-                string.IsNullOrWhiteSpace(seedUserSettings.Username) ||
-                string.IsNullOrWhiteSpace(seedUserSettings.Email) ||
-                string.IsNullOrWhiteSpace(seedUserSettings.Password);
+            var userManager = services.GetRequiredService<UserManager<UserDbModel>>();
+            var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
-            if (seedUserIsNotConfigured)
+            await EnsureRoleExists(
+                roleManager,
+                ApproverRoleName,
+                logger);
+
+            await EnsureRoleExists(
+                roleManager,
+                ViewerRoleName,
+                logger);
+
+            var seedUsers = new SeedUserDefinition[]
             {
-                logger.LogWarning(
-                    "SeedUserSettings is not configured — skipping built-in user seeding.");
-
-                return app;
-            }
-
-            const string SeedFirstName = "Seed";
-            const string SeedLastName = "User";
-            var seedDateOfBirth = new DateTime(2000, 1, 1);
-
-            var identityService = services
-                .GetRequiredService<IIdentityService>();
-
-            var serviceModel = new RegisterServiceModel(
-                seedUserSettings.Username,
-                seedUserSettings.Email,
-                seedUserSettings.Password,
-                SeedFirstName,
-                SeedLastName,
-                seedDateOfBirth);
-
-            await identityService.Register(
-                serviceModel,
-                cancellationToken);
-
-            return app;
-        }
-
-        public async Task<IApplicationBuilder> UseDevAdminRole()
-        {
-            using var serviceScope = app
-                .ApplicationServices
-                .CreateScope();
-
-            var services = serviceScope.ServiceProvider;
-
-            var userManager = services
-                .GetRequiredService<UserManager<UserDbModel>>();
-
-            var roleManager = services
-                .GetRequiredService<RoleManager<IdentityRole>>();
-
-            if (await roleManager.RoleExistsAsync(AdminRoleName))
-            {
-                return app;
-            }
-
-            var role = new IdentityRole
-            {
-                Name = AdminRoleName
+                new(
+                    seedUserSettings.ApproverUsername,
+                    seedUserSettings.ApproverEmail,
+                    seedUserSettings.ApproverPassword,
+                    ApproverRoleName,
+                    "Approver",
+                    "Account"),
+                new(
+                    seedUserSettings.Viewer1Username,
+                    seedUserSettings.Viewer1Email,
+                    seedUserSettings.Viewer1Password,
+                    ViewerRoleName,
+                    "Viewer",
+                    "Account 1"),
+                new(
+                    seedUserSettings.Viewer2Username,
+                    seedUserSettings.Viewer2Email,
+                    seedUserSettings.Viewer2Password,
+                    ViewerRoleName,
+                    "Viewer",
+                    "Account 2")
             };
 
-            await roleManager.CreateAsync(role);
-
-            const string AdminEmail = "admin@mail.com";
-            const string AdminPassword = "admin1234";
-
-            var user = new UserDbModel
+            foreach (var seedUser in seedUsers)
             {
-                Email = AdminEmail,
-                UserName = AdminRoleName
-            };
+                var isNotConfigured =
+                    string.IsNullOrWhiteSpace(seedUser.Username) ||
+                    string.IsNullOrWhiteSpace(seedUser.Email) ||
+                    string.IsNullOrWhiteSpace(seedUser.Password);
 
-            await userManager.CreateAsync(user, AdminPassword);
-            await userManager.AddToRoleAsync(user, role.Name);
-
-            return app;
-        }
-
-        // We need this method to create administrator if we drop the production db for some reason.
-        // Don't delete it!
-        public async Task<IApplicationBuilder> UseProductionAdminRole()
-        {
-            using var scope = app
-                .ApplicationServices
-                .CreateScope();
-
-            var services = scope.ServiceProvider;
-
-            var logger = services
-                .GetRequiredService<ILoggerFactory>()
-                .CreateLogger("BootstrapAdmin");
-
-            var config = services.GetRequiredService<IConfiguration>();
-            var enabled = string.Equals(
-                config["BootstrapAdmin:Enabled"],
-                "true",
-                StringComparison.OrdinalIgnoreCase);
-
-            logger.LogInformation("BootstrapAdmin Enabled = {Enabled}", enabled);
-
-            if (!enabled)
-            {
-                return app;
-            }
-
-            var email = config["BootstrapAdmin:Email"];
-            var password = config["BootstrapAdmin:Password"];
-            var roleName = config["BootstrapAdmin:Role"] ?? AdminRoleName;
-
-            var emailOrPasswordIsNotProvided =
-                string.IsNullOrWhiteSpace(email) ||
-                string.IsNullOrWhiteSpace(password);
-
-            if (emailOrPasswordIsNotProvided)
-            {
-                throw new InvalidOperationException(
-                    "BootstrapAdmin enabled but Email/Password not set.");
-            }
-
-            var userManager = services
-                .GetRequiredService<UserManager<UserDbModel>>();
-
-            var roleManager = services
-                .GetRequiredService<RoleManager<IdentityRole>>();
-
-            if (!await roleManager.RoleExistsAsync(roleName))
-            {
-                var role = new IdentityRole(roleName);
-                var createRoleResult = await roleManager.CreateAsync(role);
-
-                if (!createRoleResult.Succeeded)
+                if (isNotConfigured)
                 {
-                    var roleResultErrorMessage = createRoleResult
-                        .Errors
-                        .Select(static e => e.Description);
+                    logger.LogWarning(
+                        "Seed user for role {Role} is not configured — skipping.",
+                        seedUser.Role);
 
-                    throw new InvalidOperationException(
-                        "Failed to create role: " + string.Join("; ", roleResultErrorMessage));
+                    continue;
                 }
 
-                logger.LogInformation("Created role {Role}", roleName);
-            }
-            else
-            {
-                logger.LogInformation("Role {Role} already exists", roleName);
-            }
+                var existingUser = await userManager.FindByNameAsync(seedUser.Username!);
 
-            var user = await userManager.FindByEmailAsync(email!);
-            if (user is null)
-            {
-                user = new()
+                if (existingUser is not null)
                 {
-                    Email = email,
-                    UserName = email
+                    logger.LogInformation(
+                        "Seed user {Username} already exists — skipping creation.",
+                        seedUser.Username);
+
+                    continue;
+                }
+
+                var user = new UserDbModel
+                {
+                    UserName = seedUser.Username,
+                    Email = seedUser.Email,
+                    EmailConfirmed = true,
+                    LockoutEnabled = true,
+                    FirstName = seedUser.FirstName,
+                    LastName = seedUser.LastName
                 };
 
-                var createUserResult = await userManager.CreateAsync(user, password!);
-                if (!createUserResult.Succeeded)
-                {
-                    var errorMessage = createUserResult
-                        .Errors
-                        .Select(static e => e.Description);
-
-                    throw new InvalidOperationException(
-                        "Failed to create admin user: " + string.Join("; ", errorMessage));
-                }
-
-                logger.LogInformation("Created user {Email}", email);
-            }
-            else
-            {
-                logger.LogInformation("User {Email} already exists", email);
-            }
-
-            if (!await userManager.IsInRoleAsync(user, roleName))
-            {
-                var addToRoleResult = await userManager.AddToRoleAsync(
+                var createResult = await userManager.CreateAsync(
                     user,
-                    roleName);
+                    seedUser.Password!);
 
-                if (!addToRoleResult.Succeeded)
+                if (!createResult.Succeeded)
                 {
-                    var errorMessage = addToRoleResult
-                        .Errors
-                        .Select(static e => e.Description);
+                    logger.LogError(
+                        "Failed to seed user {Username}: {Errors}",
+                        seedUser.Username,
+                        string.Join(
+                            "; ",
+                            createResult.Errors.Select(static e => e.Description)));
 
-                    throw new InvalidOperationException(
-                        "Failed to add role: " + string.Join("; ", errorMessage));
+                    continue;
                 }
 
-                logger.LogInformation("Added user {Email} to role {Role}", email, roleName);
-            }
-            else
-            {
-                logger.LogInformation("User {Email} already in role {Role}", email, roleName);
+                await userManager.AddToRoleAsync(user, seedUser.Role);
+
+                logger.LogInformation(
+                    "Seeded user {Username} with role {Role}.",
+                    seedUser.Username,
+                    seedUser.Role);
             }
 
             return app;

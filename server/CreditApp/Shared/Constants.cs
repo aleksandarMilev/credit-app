@@ -27,7 +27,11 @@ public static class Constants
 
     public static class Names
     {
-        public const string AdminRoleName = "Administrator";
+        public const string ApproverRoleName = "Approver";
+
+        public const string ViewerRoleName = "Viewer";
+
+        public const string AllStaffRoles = ApproverRoleName + "," + ViewerRoleName;
     }
 
     public static class Cors

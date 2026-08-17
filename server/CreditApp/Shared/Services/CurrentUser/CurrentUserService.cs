@@ -17,6 +17,9 @@ public class CurrentUserService(
     public string? GetId()
         => this.User?.GetId();
 
-    public bool IsAdmin()
-        => this.User?.IsInRole(AdminRoleName) ?? false;
+    public bool IsApprover()
+        => this.User?.IsInRole(ApproverRoleName) ?? false;
+
+    public bool IsViewer()
+        => this.User?.IsInRole(ViewerRoleName) ?? false;
 }

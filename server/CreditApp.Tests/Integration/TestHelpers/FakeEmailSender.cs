@@ -4,20 +4,13 @@ using CreditApp.Modules.Email;
 
 public class FakeEmailSender : IEmailSender
 {
-    public List<string> WelcomeEmailsSentTo { get; } = [];
-
     public List<string> PasswordResetEmailsSentTo { get; } = [];
 
-    public Task SendWelcome(
-        string email,
-        string username,
-        string baseUrl,
-        CancellationToken cancellationToken = default)
-    {
-        this.WelcomeEmailsSentTo.Add(email);
+    public List<string> ApplicationSubmittedEmailsSentTo { get; } = [];
 
-        return Task.CompletedTask;
-    }
+    public List<string> ApplicationApprovedEmailsSentTo { get; } = [];
+
+    public List<string> ApplicationRejectedEmailsSentTo { get; } = [];
 
     public Task SendPasswordReset(
         string email,
@@ -25,6 +18,36 @@ public class FakeEmailSender : IEmailSender
         CancellationToken cancellationToken = default)
     {
         this.PasswordResetEmailsSentTo.Add(email);
+
+        return Task.CompletedTask;
+    }
+
+    public Task SendApplicationSubmitted(
+        string email,
+        string applicantName,
+        CancellationToken cancellationToken = default)
+    {
+        this.ApplicationSubmittedEmailsSentTo.Add(email);
+
+        return Task.CompletedTask;
+    }
+
+    public Task SendApplicationApproved(
+        string email,
+        string applicantName,
+        CancellationToken cancellationToken = default)
+    {
+        this.ApplicationApprovedEmailsSentTo.Add(email);
+
+        return Task.CompletedTask;
+    }
+
+    public Task SendApplicationRejected(
+        string email,
+        string applicantName,
+        CancellationToken cancellationToken = default)
+    {
+        this.ApplicationRejectedEmailsSentTo.Add(email);
 
         return Task.CompletedTask;
     }

@@ -9,13 +9,11 @@ using Email;
 using FluentResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Models;
 using Shared.Errors;
 
-using static CreditApp.Shared.Constants.Names;
 using static Shared.Constants.TokenExpiration;
 
 public class IdentityService(
@@ -25,98 +23,6 @@ public class IdentityService(
     IOptions<JwtSettings> jwtSettings,
     IOptions<AppUrlsSettings> appUrlsSettings) : IIdentityService
 {
-    public async Task<Result<string>> Register(
-        RegisterServiceModel serviceModel,
-        CancellationToken cancellationToken = default)
-    {
-        var normalizedUsername = userManager.NormalizeName(serviceModel.Username);
-        var normalizedEmail = userManager.NormalizeEmail(serviceModel.Email);
-
-        var usersQuery = userManager.Users;
-        usersQuery = usersQuery.IgnoreQueryFilters();
-
-        var usernameTaken = await usersQuery
-            .AnyAsync(
-                u => u.NormalizedUserName == normalizedUsername,
-                cancellationToken);
-
-        if (usernameTaken)
-        {
-            return Result.Fail<string>(
-                new UsernameTakenError(serviceModel.Username));
-        }
-
-        var emailTaken = await usersQuery
-            .AnyAsync(
-                u => u.NormalizedEmail == normalizedEmail,
-                cancellationToken);
-
-        if (emailTaken)
-        {
-            return Result.Fail<string>(
-                new EmailTakenError(serviceModel.Username));
-        }
-
-        var user = new UserDbModel
-        {
-            Email = serviceModel.Email,
-            UserName = serviceModel.Username,
-            FirstName = serviceModel.FirstName,
-            LastName = serviceModel.LastName,
-            DateOfBirth = serviceModel.DateOfBirth,
-            LockoutEnabled = true
-        };
-
-        var identityResult = await userManager.CreateAsync(
-            user,
-            serviceModel.Password);
-
-        if (identityResult.Succeeded)
-        {
-            try
-            {
-                var jwt = this.GenerateJwtToken(
-                    jwtSettings.Value.Secret,
-                    user.Id,
-                    serviceModel.Username,
-                    serviceModel.Email);
-
-                logger.LogInformation("User successfully registered. UserId={UserId}", user.Id);
-
-                var baseUrl = appUrlsSettings
-                    .Value
-                    .ClientBaseUrl?
-                    .TrimEnd('/')
-                    ?? throw new InvalidOperationException("AppUrlsSettings:ClientBaseUrl is not configured.");
-
-                await emailSender.SendWelcome(
-                    serviceModel.Email,
-                    serviceModel.Username,
-                    baseUrl,
-                    cancellationToken);
-
-                return Result.Ok(jwt);
-            }
-            catch (Exception exception)
-            {
-                logger.LogError(exception,
-                    "Failed to complete registration. UserId={UserId}",
-                    user.Id);
-
-                await userManager.DeleteAsync(user);
-
-                return Result.Fail<string>(
-                   new InvalidRegisterAttemptError());
-            }
-        }
-
-        var errorMessage = string.Join(
-            "; ",
-            identityResult.Errors.Select(static e => e.Description));
-
-        return Result.Fail<string>(errorMessage);
-    }
-
     public async Task<Result<string>> Login(
         LoginServiceModel serviceModel,
         CancellationToken cancellationToken = default)
@@ -156,14 +62,25 @@ public class IdentityService(
         {
             await userManager.ResetAccessFailedCountAsync(user);
 
-            var isAdmin = await userManager.IsInRoleAsync(user, AdminRoleName);
+            var roles = await userManager.GetRolesAsync(user);
+
+            if (!roles.Any())
+            {
+                logger.LogError(
+                    "User {UserId} has no assigned role — refusing to issue a token.",
+                    user.Id);
+
+                return Result.Fail<string>(
+                    new NoRoleAssignedError());
+            }
+
             var jwt = this.GenerateJwtToken(
                 jwtSettings.Value.Secret,
                 user.Id,
                 user.UserName!,
                 user.Email!,
-                serviceModel.RememberMe,
-                isAdmin);
+                roles,
+                serviceModel.RememberMe);
 
             return Result.Ok(jwt);
         }
@@ -280,8 +197,8 @@ public class IdentityService(
         string userId,
         string username,
         string email,
-        bool rememberMe = false,
-        bool isAdmin = false)
+        IEnumerable<string> roles,
+        bool rememberMe = false)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         tokenHandler.OutboundClaimTypeMap.Clear();
@@ -295,10 +212,10 @@ public class IdentityService(
             new(ClaimTypes.Email, email)
         };
 
-        if (isAdmin)
-        {
-            claimList.Add(new(ClaimTypes.Role, AdminRoleName));
-        }
+        var roleClaims = roles
+            .Select(role => new Claim(ClaimTypes.Role, role));
+
+        claimList.AddRange(roleClaims);
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {

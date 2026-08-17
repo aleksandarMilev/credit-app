@@ -27,16 +27,16 @@ public static class PasswordResetEmailTemplate
                                 </tr>
                                 <tr>
                                     <td style="padding:32px;">
-                                        <h1 style="margin:0 0 16px; font-size:22px; color:#111827;">Reset your password</h1>
+                                        <h1 style="margin:0 0 16px; font-size:22px; color:#111827;">Нулиране на паролата</h1>
                                         <p style="margin:0 0 24px; font-size:15px; line-height:1.6; color:#374151;">
-                                            We received a request to reset your password. Click the button below to
-                                            choose a new one. This link will expire shortly for your security.
+                                            Получихме заявка за нулиране на вашата парола. Натиснете бутона по-долу, за да
+                                            изберете нова парола. Тази връзка ще изтече скоро от съображения за сигурност.
                                         </p>
                                         <table role="presentation" cellpadding="0" cellspacing="0">
                                             <tr>
                                                 <td style="border-radius:6px; background-color:#1e3a8a;">
                                                     <a href="{safeUrl}" style="display:inline-block; padding:12px 24px; font-size:15px; color:#ffffff; text-decoration:none; font-weight:bold;">
-                                                        Reset password
+                                                        Нулиране на паролата
                                                     </a>
                                                 </td>
                                             </tr>
@@ -46,8 +46,8 @@ public static class PasswordResetEmailTemplate
                                 <tr>
                                     <td style="padding:20px 32px; border-top:1px solid #e5e7eb;">
                                         <p style="margin:0; font-size:12px; color:#9ca3af;">
-                                            If you didn't request a password reset, you can safely ignore this email —
-                                            your password will not be changed.
+                                            Ако не сте заявявали нулиране на паролата, можете спокойно да игнорирате този имейл —
+                                            паролата ви няма да бъде променена.
                                         </p>
                                     </td>
                                 </tr>
