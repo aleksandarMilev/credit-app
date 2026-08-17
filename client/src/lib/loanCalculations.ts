@@ -10,7 +10,20 @@ export interface LoanCalculationResult {
   totalInterest: number
 }
 
+// Mirrors the server's SubmitApplicationWebModel validation range exactly —
+// keep these two in sync if the backend's bounds ever change.
+export const MAX_LOAN_AMOUNT = 1_000_000
+export const MAX_TERM_MONTHS = 360
+
+const MIN_ANNUAL_INTEREST_RATE = 0
+const MAX_ANNUAL_INTEREST_RATE = 100
+
 const roundToTwoDecimals = (value: number): number => Math.round(value * 100) / 100
+
+const isValidAnnualInterestRate = (annualInterestRate: number): boolean =>
+  Number.isFinite(annualInterestRate) &&
+  annualInterestRate >= MIN_ANNUAL_INTEREST_RATE &&
+  annualInterestRate < MAX_ANNUAL_INTEREST_RATE
 
 const calculateAmortizedMonthlyPayment = (
   amount: number,
@@ -28,7 +41,7 @@ export const calculateLoan = ({
   termMonths,
   annualInterestRate,
 }: LoanCalculationInput): LoanCalculationResult => {
-  if (amount <= 0 || termMonths <= 0) {
+  if (amount <= 0 || termMonths <= 0 || !isValidAnnualInterestRate(annualInterestRate)) {
     return { monthlyPayment: 0, totalRepayment: 0, totalInterest: 0 }
   }
 

@@ -1,6 +1,6 @@
 import { useId, useState } from 'react'
 import { formatCurrency } from '@/lib/formatCurrency'
-import { calculateLoan } from '@/lib/loanCalculations'
+import { calculateLoan, MAX_LOAN_AMOUNT, MAX_TERM_MONTHS } from '@/lib/loanCalculations'
 
 interface LoanCalculatorProps {
   annualInterestRate: number
@@ -10,17 +10,30 @@ interface LoanCalculatorProps {
 const DEFAULT_AMOUNT = '10000'
 const DEFAULT_TERM_MONTHS = '36'
 
+const inputClassName = (isValid: boolean) =>
+  [
+    'mt-1.5 block w-full rounded-lg border bg-white px-3.5 py-2.5 text-base text-gray-900 shadow-sm outline-none transition-colors focus:ring-2 sm:text-sm',
+    isValid
+      ? 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500/30'
+      : 'border-red-400 focus:border-red-500 focus:ring-red-500/30',
+  ].join(' ')
+
 export const LoanCalculator = ({ annualInterestRate, onApply }: LoanCalculatorProps) => {
   const [amountInput, setAmountInput] = useState(DEFAULT_AMOUNT)
   const [termInput, setTermInput] = useState(DEFAULT_TERM_MONTHS)
 
   const amountId = useId()
   const termId = useId()
+  const amountErrorId = useId()
+  const termErrorId = useId()
 
   const amount = Number(amountInput)
   const termMonths = Number(termInput)
-  const hasValidInput =
-    Number.isFinite(amount) && Number.isFinite(termMonths) && amount > 0 && termMonths > 0
+
+  const amountIsValid = Number.isFinite(amount) && amount > 0 && amount <= MAX_LOAN_AMOUNT
+  const termIsValid =
+    Number.isFinite(termMonths) && termMonths > 0 && termMonths <= MAX_TERM_MONTHS
+  const hasValidInput = amountIsValid && termIsValid
 
   const { monthlyPayment, totalRepayment, totalInterest } = hasValidInput
     ? calculateLoan({ amount, termMonths, annualInterestRate })
@@ -46,13 +59,21 @@ export const LoanCalculator = ({ annualInterestRate, onApply }: LoanCalculatorPr
             type="number"
             inputMode="decimal"
             min="0"
+            max={MAX_LOAN_AMOUNT}
             step="100"
             value={amountInput}
             onChange={(event) => {
               setAmountInput(event.target.value)
             }}
-            className="mt-1.5 block w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-base text-gray-900 shadow-sm outline-none transition-colors focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 sm:text-sm"
+            aria-invalid={!amountIsValid}
+            aria-describedby={amountIsValid ? undefined : amountErrorId}
+            className={inputClassName(amountIsValid)}
           />
+          {!amountIsValid && (
+            <p id={amountErrorId} className="mt-1.5 text-sm text-red-600">
+              Моля, въведете валидна сума
+            </p>
+          )}
         </div>
 
         <div>
@@ -64,13 +85,21 @@ export const LoanCalculator = ({ annualInterestRate, onApply }: LoanCalculatorPr
             type="number"
             inputMode="numeric"
             min="1"
+            max={MAX_TERM_MONTHS}
             step="1"
             value={termInput}
             onChange={(event) => {
               setTermInput(event.target.value)
             }}
-            className="mt-1.5 block w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-base text-gray-900 shadow-sm outline-none transition-colors focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 sm:text-sm"
+            aria-invalid={!termIsValid}
+            aria-describedby={termIsValid ? undefined : termErrorId}
+            className={inputClassName(termIsValid)}
           />
+          {!termIsValid && (
+            <p id={termErrorId} className="mt-1.5 text-sm text-red-600">
+              Моля, въведете валиден срок
+            </p>
+          )}
         </div>
       </div>
 

@@ -1,8 +1,16 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 
 export const Header = () => {
+  const location = useLocation()
+
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [menuTrackedPathname, setMenuTrackedPathname] = useState(location.pathname)
+
+  if (location.pathname !== menuTrackedPathname) {
+    setMenuTrackedPathname(location.pathname)
+    setIsMenuOpen(false)
+  }
 
   return (
     <header className="sticky top-0 z-10 border-b border-gray-200 bg-white/80 backdrop-blur-sm">
@@ -62,9 +70,6 @@ export const Header = () => {
         <nav className="border-t border-gray-200 px-4 py-3 sm:hidden">
           <Link
             to="/calculator"
-            onClick={() => {
-              setIsMenuOpen(false)
-            }}
             className="block rounded-lg px-3 py-2 text-base font-medium text-gray-700 transition-colors hover:bg-gray-100"
           >
             Калкулатор

@@ -51,4 +51,63 @@ describe('LoanCalculator', () => {
     expect(handleApply).toHaveBeenCalledTimes(1)
     expect(handleApply).toHaveBeenCalledWith(1200, 12)
   })
+
+  it('does not render validation messages for the default valid input', () => {
+    render(<LoanCalculator annualInterestRate={5} />)
+
+    expect(screen.queryByText('Моля, въведете валидна сума')).not.toBeInTheDocument()
+    expect(screen.queryByText('Моля, въведете валиден срок')).not.toBeInTheDocument()
+  })
+
+  it('shows a validation message and disables Apply when the amount is invalid', async () => {
+    const handleApply = vi.fn()
+    render(<LoanCalculator annualInterestRate={5} onApply={handleApply} />)
+
+    await setLoanInputs('0', '12')
+
+    expect(screen.getByText('Моля, въведете валидна сума')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Кандидатствайте с тези условия' })).toBeDisabled()
+  })
+
+  it('shows a validation message when the amount exceeds the maximum', async () => {
+    render(<LoanCalculator annualInterestRate={5} />)
+
+    await setLoanInputs('1000001', '12')
+
+    expect(screen.getByText('Моля, въведете валидна сума')).toBeInTheDocument()
+  })
+
+  it('shows a validation message when the term exceeds the maximum', async () => {
+    render(<LoanCalculator annualInterestRate={5} />)
+
+    await setLoanInputs('1000', '361')
+
+    expect(screen.getByText('Моля, въведете валиден срок')).toBeInTheDocument()
+  })
+
+  it('associates the amount input with its validation message via aria-describedby', async () => {
+    render(<LoanCalculator annualInterestRate={5} />)
+
+    await setLoanInputs('0', '12')
+
+    const amountInput = screen.getByLabelText('Сума на кредита')
+    const message = screen.getByText('Моля, въведете валидна сума')
+
+    expect(amountInput).toHaveAttribute('aria-describedby', message.id)
+    expect(amountInput).toHaveAttribute('aria-invalid', 'true')
+  })
+
+  it('clears the validation message once the input becomes valid again', async () => {
+    render(<LoanCalculator annualInterestRate={5} />)
+    const user = userEvent.setup()
+    const amountInput = screen.getByLabelText('Сума на кредита')
+
+    await user.clear(amountInput)
+    await user.type(amountInput, '0')
+    expect(screen.getByText('Моля, въведете валидна сума')).toBeInTheDocument()
+
+    await user.clear(amountInput)
+    await user.type(amountInput, '1000')
+    expect(screen.queryByText('Моля, въведете валидна сума')).not.toBeInTheDocument()
+  })
 })
