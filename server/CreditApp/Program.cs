@@ -5,10 +5,6 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var builderEnvIsNotTesting = !builder
-    .Environment
-    .IsEnvironment("Testing");
-
 builder
     .Services
     .AddHttpContextAccessor()
@@ -24,10 +20,14 @@ builder
     .AddMemoryCache()
     .AddRateLimiting(builder.Environment);
 
-AspNetCoreResult.Setup(settings =>
+AspNetCoreResult.Setup(static settings =>
 {
     settings.DefaultProfile = new ResultProfile();
 });
+
+var builderEnvIsNotTesting = !builder
+    .Environment
+    .IsEnvironment("Testing");
 
 if (builderEnvIsNotTesting)
 {
@@ -43,7 +43,7 @@ if (builderEnvIsNotTesting)
 }
 
 var app = builder.Build();
-var canceltationToken = app.Lifetime.ApplicationStopping;
+var cancellationToken = app.Lifetime.ApplicationStopping;
 
 var appEnvIsDev = app.Environment.IsDevelopment();
 var appEnvIsNotTesting = !app
@@ -82,11 +82,12 @@ if (appEnvIsDev)
     app.MapOpenApi();
     app.MapScalarApiReference();
 
-    await app.UseMigrations(canceltationToken);
-    await app.UseBuiltInUser(canceltationToken);
-    await app.UseDevAdminRole();
+    await app.UseMigrations(cancellationToken);
 }
 
-await app.RunAsync(canceltationToken);
+if (appEnvIsNotTesting)
+{
+    await app.UseBuiltInUser();
+}
 
-public partial class Program { }
+await app.RunAsync(cancellationToken);

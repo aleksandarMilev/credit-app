@@ -5,107 +5,53 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text;
+using CreditApp.Modules.Email;
+using CreditApp.Modules.Identity.Data.Models;
 using CreditApp.Modules.Identity.Service.Models;
 using CreditApp.Modules.Identity.Web.Models;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using TestHelpers;
+
+using static CreditApp.Shared.Constants.Names;
 
 public class IdentityControllerTests(
     CustomWebApplicationFactory factory) : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly HttpClient client = factory.CreateClient();
 
-    private static RegisterWebModel ValidRegisterPayload(string suffix)
-        => new()
-        {
-            Username = $"itest.user.{suffix}",
-            Email = $"itest.user.{suffix}@test.local",
-            Password = "IntegrationTest123",
-            FirstName = "Integration",
-            LastName = "Tester",
-            DateOfBirth = new DateTime(1995, 6, 15)
-        };
-
-    [Fact]
-    public async Task Register_ValidPayload_ReturnsSuccessWithJwt()
-    {
-        var payload = ValidRegisterPayload(Guid.NewGuid().ToString("N")[..8]);
-
-        var response = await this.client.PostAsJsonAsync("/identity/register/", payload);
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-        var body = await response.Content.ReadFromJsonAsync<JwtTokenServiceModel>();
-
-        Assert.NotNull(body);
-        Assert.False(string.IsNullOrWhiteSpace(body!.Token));
-    }
-
-    [Fact]
-    public async Task Register_DuplicateUsername_ReturnsConflict()
-    {
-        var suffix = Guid.NewGuid().ToString("N")[..8];
-        var firstPayload = ValidRegisterPayload(suffix);
-
-        var firstResponse = await this.client.PostAsJsonAsync("/identity/register/", firstPayload);
-        Assert.Equal(HttpStatusCode.OK, firstResponse.StatusCode);
-
-        var duplicatePayload = new RegisterWebModel
-        {
-            Username = firstPayload.Username,
-            Email = $"different.{suffix}@test.local",
-            Password = "IntegrationTest123",
-            FirstName = "Integration",
-            LastName = "Tester",
-            DateOfBirth = new DateTime(1995, 6, 15)
-        };
-
-        var secondResponse = await this.client.PostAsJsonAsync("/identity/register/", duplicatePayload);
-
-        Assert.Equal(HttpStatusCode.Conflict, secondResponse.StatusCode);
-
-        var problem = await secondResponse.Content.ReadFromJsonAsync<ProblemDetails>();
-        Assert.Equal("Conflict", problem?.Title);
-    }
-
-    [Fact]
-    public async Task Register_InvalidPayload_ReturnsBadRequest()
-    {
-        var invalidPayload = new RegisterWebModel
-        {
-            Username = "",
-            Email = "not-an-email",
-            Password = "123",
-            FirstName = "",
-            LastName = "",
-            DateOfBirth = DateTime.UtcNow.AddYears(-5)
-        };
-
-        var response = await this.client.PostAsJsonAsync("/identity/register/", invalidPayload);
-
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-    }
-
     [Fact]
     public async Task Login_ValidCredentials_ReturnsJwt()
     {
-        var registerPayload = ValidRegisterPayload(Guid.NewGuid().ToString("N")[..8]);
-        var registerResponse = await this.client.PostAsJsonAsync("/identity/register/", registerPayload);
-        Assert.Equal(HttpStatusCode.OK, registerResponse.StatusCode);
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var username = $"itest.approver.{suffix}";
+
+        const string password = "IntegrationTest123";
+
+        await TestUserFactory.CreateStaffUser(
+            factory.Services,
+            username,
+            password,
+            ApproverRoleName);
 
         var loginPayload = new LoginWebModel
         {
-            Credentials = registerPayload.Username,
-            Password = registerPayload.Password,
+            Credentials = username,
+            Password = password,
             RememberMe = false
         };
 
-        var loginResponse = await this.client.PostAsJsonAsync("/identity/login/", loginPayload);
+        var loginResponse = await this.client.PostAsJsonAsync(
+            "/identity/login/",
+            loginPayload);
 
         Assert.Equal(HttpStatusCode.OK, loginResponse.StatusCode);
 
-        var body = await loginResponse.Content.ReadFromJsonAsync<JwtTokenServiceModel>();
+        var body = await loginResponse
+            .Content
+            .ReadFromJsonAsync<JwtTokenServiceModel>();
 
         Assert.NotNull(body);
         Assert.False(string.IsNullOrWhiteSpace(body!.Token));
@@ -114,37 +60,57 @@ public class IdentityControllerTests(
     [Fact]
     public async Task Login_WrongCredentials_ReturnsUnauthorized()
     {
-        var registerPayload = ValidRegisterPayload(Guid.NewGuid().ToString("N")[..8]);
-        var registerResponse = await this.client.PostAsJsonAsync("/identity/register/", registerPayload);
-        Assert.Equal(HttpStatusCode.OK, registerResponse.StatusCode);
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var username = $"itest.approver.{suffix}";
+        const string password = "IntegrationTest123";
+
+        await TestUserFactory.CreateStaffUser(
+            factory.Services,
+            username,
+            password,
+            ApproverRoleName);
 
         var loginPayload = new LoginWebModel
         {
-            Credentials = registerPayload.Username,
+            Credentials = username,
             Password = "TotallyWrongPassword123",
             RememberMe = false
         };
 
-        var loginResponse = await this.client.PostAsJsonAsync("/identity/login/", loginPayload);
+        var loginResponse = await this.client.PostAsJsonAsync(
+            "/identity/login/",
+            loginPayload);
 
         Assert.Equal(HttpStatusCode.Unauthorized, loginResponse.StatusCode);
     }
 
     [Fact]
-    public async Task Login_ReturnedJwt_ValidatesAgainstConfiguredJwtSettings()
+    public async Task Login_ReturnedJwt_ValidatesAgainstConfiguredJwtSettingsAndContainsRoleClaim()
     {
-        var registerPayload = ValidRegisterPayload(Guid.NewGuid().ToString("N")[..8]);
-        await this.client.PostAsJsonAsync("/identity/register/", registerPayload);
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var username = $"itest.viewer.{suffix}";
+        const string password = "IntegrationTest123";
+
+        await TestUserFactory.CreateStaffUser(
+            factory.Services,
+            username,
+            password,
+            ViewerRoleName);
 
         var loginPayload = new LoginWebModel
         {
-            Credentials = registerPayload.Username,
-            Password = registerPayload.Password,
+            Credentials = username,
+            Password = password,
             RememberMe = false
         };
 
-        var loginResponse = await this.client.PostAsJsonAsync("/identity/login/", loginPayload);
-        var body = await loginResponse.Content.ReadFromJsonAsync<JwtTokenServiceModel>();
+        var loginResponse = await this.client.PostAsJsonAsync(
+            "/identity/login/",
+            loginPayload);
+
+        var body = await loginResponse
+            .Content
+            .ReadFromJsonAsync<JwtTokenServiceModel>();
 
         var validationParameters = new TokenValidationParameters
         {
@@ -159,12 +125,197 @@ public class IdentityControllerTests(
         };
 
         var handler = new JwtSecurityTokenHandler();
-        var principal = handler.ValidateToken(body!.Token, validationParameters, out var validatedToken);
+        var principal = handler.ValidateToken(
+            body!.Token,
+            validationParameters,
+            out var validatedToken);
 
         Assert.NotNull(validatedToken);
-        Assert.Equal(registerPayload.Username, principal.Identity?.Name);
+        Assert.Equal(username, principal.Identity?.Name);
         Assert.Contains(
             principal.Claims,
-            c => c.Type == ClaimTypes.Email && c.Value == registerPayload.Email);
+            static c => c.Type == ClaimTypes.Role && c.Value == ViewerRoleName);
+    }
+
+    [Fact]
+    public async Task Login_UserWithNoRole_ReturnsForbidden()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var username = $"itest.norole.{suffix}";
+        const string password = "IntegrationTest123";
+
+        var userManager = factory.Services.GetRequiredService<UserManager<UserDbModel>>();
+
+        var user = new UserDbModel
+        {
+            UserName = username,
+            Email = $"{username}@test.local",
+            EmailConfirmed = true,
+            LockoutEnabled = true,
+            FirstName = "Test",
+            LastName = "User"
+        };
+
+        await userManager.CreateAsync(user, password);
+
+        var loginPayload = new LoginWebModel
+        {
+            Credentials = username,
+            Password = password,
+            RememberMe = false
+        };
+
+        var loginResponse = await this.client.PostAsJsonAsync(
+            "/identity/login/",
+            loginPayload);
+
+        Assert.Equal(HttpStatusCode.Forbidden, loginResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task ForgotPassword_ExistingUser_ReturnsOkAndSendsEmail()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var username = $"itest.forgot.{suffix}";
+        var email = $"{username}@test.local";
+
+        const string password = "IntegrationTest123";
+
+        await TestUserFactory.CreateStaffUser(
+            factory.Services,
+            username,
+            password,
+            ApproverRoleName);
+
+        var payload = new ForgotPasswordWebModel { Email = email };
+
+        var response = await this.client.PostAsJsonAsync(
+            "/identity/forgot-password/",
+            payload);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var fakeEmailSender = (FakeEmailSender)factory
+            .Services
+            .GetRequiredService<IEmailSender>();
+
+        Assert.Contains(email, fakeEmailSender.PasswordResetEmailsSentTo);
+    }
+
+    [Fact]
+    public async Task ForgotPassword_NonexistentEmail_ReturnsOkWithoutRevealingAbsence()
+    {
+        var email = $"itest.nonexistent.{Guid.NewGuid():N}@test.local";
+
+        var payload = new ForgotPasswordWebModel { Email = email };
+
+        var response = await this.client.PostAsJsonAsync(
+            "/identity/forgot-password/",
+            payload);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var fakeEmailSender = (FakeEmailSender)factory
+            .Services
+            .GetRequiredService<IEmailSender>();
+
+        Assert.DoesNotContain(email, fakeEmailSender.PasswordResetEmailsSentTo);
+    }
+
+    [Fact]
+    public async Task ResetPassword_ValidToken_ReturnsOkAndAllowsLoginWithNewPassword()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var username = $"itest.reset.{suffix}";
+        var email = $"{username}@test.local";
+
+        const string oldPassword = "IntegrationTest123";
+        const string newPassword = "NewIntegrationTest456";
+
+        var user = await TestUserFactory.CreateStaffUser(
+            factory.Services,
+            username,
+            oldPassword,
+            ApproverRoleName);
+
+        var userManager = factory
+            .Services
+            .GetRequiredService<UserManager<UserDbModel>>();
+
+        var rawToken = await userManager.GeneratePasswordResetTokenAsync(user);
+        var tokenBytes = Encoding.UTF8.GetBytes(rawToken);
+        var encodedToken = WebEncoders.Base64UrlEncode(tokenBytes);
+
+        var resetPayload = new ResetPasswordWebModel
+        {
+            Email = email,
+            Token = encodedToken,
+            NewPassword = newPassword
+        };
+
+        var resetResponse = await this.client.PostAsJsonAsync(
+            "/identity/reset-password/",
+            resetPayload);
+
+        Assert.Equal(HttpStatusCode.OK, resetResponse.StatusCode);
+
+        var loginPayload = new LoginWebModel
+        {
+            Credentials = username,
+            Password = newPassword,
+            RememberMe = false
+        };
+
+        var loginResponse = await this.client.PostAsJsonAsync(
+            "/identity/login/",
+            loginPayload);
+
+        Assert.Equal(HttpStatusCode.OK, loginResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task ResetPassword_InvalidToken_ReturnsBadRequest()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var username = $"itest.badtoken.{suffix}";
+        var email = $"{username}@test.local";
+
+        const string password = "IntegrationTest123";
+
+        await TestUserFactory.CreateStaffUser(
+            factory.Services,
+            username,
+            password,
+            ApproverRoleName);
+
+        var resetPayload = new ResetPasswordWebModel
+        {
+            Email = email,
+            Token = "not-a-real-token",
+            NewPassword = "SomeNewPassword789"
+        };
+
+        var resetResponse = await this.client.PostAsJsonAsync(
+            "/identity/reset-password/",
+            resetPayload);
+
+        Assert.Equal(HttpStatusCode.BadRequest, resetResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task ResetPassword_NonexistentEmail_ReturnsBadRequest()
+    {
+        var resetPayload = new ResetPasswordWebModel
+        {
+            Email = $"itest.ghost.{Guid.NewGuid():N}@test.local",
+            Token = "irrelevant-token",
+            NewPassword = "SomeNewPassword789"
+        };
+
+        var resetResponse = await this.client.PostAsJsonAsync(
+            "/identity/reset-password/",
+            resetPayload);
+
+        Assert.Equal(HttpStatusCode.BadRequest, resetResponse.StatusCode);
     }
 }

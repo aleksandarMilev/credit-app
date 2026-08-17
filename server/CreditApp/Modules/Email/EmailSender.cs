@@ -11,19 +11,6 @@ public class EmailSender(
     IOptions<EmailSettings> emailSettings,
     ILogger<EmailSender> logger) : IEmailSender
 {
-    public async Task SendWelcome(
-        string email,
-        string username,
-        string baseUrl,
-        CancellationToken cancellationToken = default)
-        => await this.Send(
-            email,
-            "Welcome to CreditApp",
-            WelcomeEmailTemplate.Build(
-                username,
-                baseUrl),
-            cancellationToken);
-
     public async Task SendPasswordReset(
         string email,
         string resetUrl,

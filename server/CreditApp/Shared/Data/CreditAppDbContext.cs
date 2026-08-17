@@ -11,10 +11,6 @@ public class CreditAppDbContext(
     DbContextOptions<CreditAppDbContext> options,
     ICurrentUserService userService) : IdentityDbContext<UserDbModel>(options)
 {
-    public string? CurrentUserId { get; } = userService.GetId();
-
-    public bool IsAdmin { get; } = userService.IsAdmin();
-
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
         this.ApplyAuditInfo();

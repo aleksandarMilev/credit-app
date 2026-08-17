@@ -29,10 +29,5 @@ public sealed class UserDbModelConfiguration : IEntityTypeConfiguration<UserDbMo
             .Property(static p => p.LastName)
             .IsRequired()
             .HasMaxLength(NameMaxLength);
-
-        builder
-          .Property(static p => p.DateOfBirth)
-          .IsRequired()
-          .HasColumnType("date");
     }
 }

@@ -1,8 +1,8 @@
 ﻿namespace CreditApp.Shared;
 
+using CreditApp.Modules.Identity.Shared.Errors;
 using FluentResults.Extensions.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
-using Modules.Identity.Shared.Errors;
 
 public sealed class ResultProfile : DefaultAspNetCoreResultEndpointProfile
 {
@@ -13,12 +13,6 @@ public sealed class ResultProfile : DefaultAspNetCoreResultEndpointProfile
 
         return error switch
         {
-            UsernameTakenError or EmailTakenError =>
-                CreateProblem(
-                    StatusCodes.Status409Conflict,
-                    "Conflict",
-                    error.Message),
-
             InvalidLoginAttemptError =>
                 CreateProblem(
                     StatusCodes.Status401Unauthorized,
@@ -31,7 +25,13 @@ public sealed class ResultProfile : DefaultAspNetCoreResultEndpointProfile
                     "Locked",
                     error.Message),
 
-            InvalidPasswordResetAttemptError or InvalidRegisterAttemptError =>
+            NoRoleAssignedError =>
+                CreateProblem(
+                    StatusCodes.Status403Forbidden,
+                    "Forbidden",
+                    error.Message),
+
+            InvalidPasswordResetAttemptError =>
                 CreateProblem(
                     StatusCodes.Status400BadRequest,
                     "Bad Request",

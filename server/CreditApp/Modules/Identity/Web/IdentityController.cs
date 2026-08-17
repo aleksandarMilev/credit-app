@@ -12,17 +12,6 @@ using Web.Models;
 public class IdentityController(
     IIdentityService service) : ApiController
 {
-    [HttpPost("register/")]
-    public async Task<ActionResult<JwtTokenServiceModel>> Register(
-        RegisterWebModel webModel,
-        CancellationToken cancellationToken = default)
-        => await service
-            .Register(
-                webModel.ToRegisterServiceModel(),
-                cancellationToken)
-            .Map(static token => new JwtTokenServiceModel(token))
-            .ToActionResult();
-
     [HttpPost("login/")]
     public async Task<ActionResult<JwtTokenServiceModel>> Login(
         LoginWebModel webModel,

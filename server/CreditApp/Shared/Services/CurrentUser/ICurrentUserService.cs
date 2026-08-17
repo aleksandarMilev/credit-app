@@ -8,5 +8,7 @@ public interface ICurrentUserService : IScopedService
 
     string? GetId();
 
-    bool IsAdmin();
+    bool IsApprover();
+
+    bool IsViewer();
 }

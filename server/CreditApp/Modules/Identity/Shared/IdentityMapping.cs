@@ -12,16 +12,6 @@ public static class IdentityMapping
            webmodel.Password,
            webmodel.RememberMe);
 
-    public static RegisterServiceModel ToRegisterServiceModel(
-        this RegisterWebModel webmodel)
-        => new(
-            webmodel.Username,
-            webmodel.Email,
-            webmodel.Password,
-            webmodel.FirstName,
-            webmodel.LastName,
-            webmodel.DateOfBirth);
-
     public static ForgotPasswordServiceModel ToForgotPasswordServiceModel(
        this ForgotPasswordWebModel webModel)
        => new(webModel.Email);

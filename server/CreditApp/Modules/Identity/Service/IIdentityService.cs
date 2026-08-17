@@ -6,10 +6,6 @@ using Models;
 
 public interface IIdentityService : ITransientService
 {
-    Task<Result<string>> Register(
-        RegisterServiceModel model,
-        CancellationToken cancellationToken = default);
-
     Task<Result<string>> Login(
         LoginServiceModel model,
         CancellationToken cancellationToken = default);
