@@ -41,6 +41,15 @@ services:
       - EmailSettings__From=${SMTP_FROM}
       - EmailSettings__UseSsl=${SMTP_USE_SSL}
       - Cors__AllowedOrigins=${CORS_ALLOWED_ORIGINS}
+      - SeedUserSettings__ApproverUsername=${SEED_APPROVER_USERNAME}
+      - SeedUserSettings__ApproverEmail=${SEED_APPROVER_EMAIL}
+      - SeedUserSettings__ApproverPassword=${SEED_APPROVER_PASSWORD}
+      - SeedUserSettings__Viewer1Username=${SEED_VIEWER1_USERNAME}
+      - SeedUserSettings__Viewer1Email=${SEED_VIEWER1_EMAIL}
+      - SeedUserSettings__Viewer1Password=${SEED_VIEWER1_PASSWORD}
+      - SeedUserSettings__Viewer2Username=${SEED_VIEWER2_USERNAME}
+      - SeedUserSettings__Viewer2Email=${SEED_VIEWER2_EMAIL}
+      - SeedUserSettings__Viewer2Password=${SEED_VIEWER2_PASSWORD}
     volumes:
       - server_uploads:/app/wwwroot
     networks:
