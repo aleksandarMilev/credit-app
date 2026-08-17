@@ -14,7 +14,7 @@ export const CalculatorPage = () => {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center bg-gradient-to-b from-indigo-50 via-white to-white px-4 py-10 sm:px-6 sm:py-16 lg:px-8">
+    <div className="flex min-h-screen flex-col items-center bg-gradient-to-b from-primary-50 via-white to-white px-4 py-10 sm:px-6 sm:py-16 lg:px-8">
       <div className="max-w-2xl text-center">
         <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
           Кредитен калкулатор
