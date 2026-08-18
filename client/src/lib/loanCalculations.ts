@@ -10,8 +10,6 @@ export interface LoanCalculationResult {
   totalInterest: number
 }
 
-// Mirrors the server's SubmitApplicationWebModel validation range exactly —
-// keep these two in sync if the backend's bounds ever change.
 export const MAX_LOAN_AMOUNT = 1_000_000
 export const MAX_TERM_MONTHS = 360
 
