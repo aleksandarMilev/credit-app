@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, CircleAlert, ImageOff, Loader2 } from 'lucide-react'
 import { useApplicationDetailQuery } from '@/hooks/useApplicationDetailQuery'
@@ -17,6 +17,9 @@ export const AdminApplicationDetailPage = () => {
   const { id } = useParams<{ id: string }>()
   const roles = useAuthStore(selectRoles)
   const isApprover = roles.includes(APPROVER_ROLE_NAME)
+
+  const noteId = useId()
+  const mutationErrorId = useId()
 
   const [note, setNote] = useState('')
 
