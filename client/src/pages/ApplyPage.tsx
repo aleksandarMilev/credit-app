@@ -189,6 +189,15 @@ export const ApplyPage = () => {
   const termId = useId()
   const idCardImageId = useId()
 
+  const firstNameErrorId = useId()
+  const lastNameErrorId = useId()
+  const egnErrorId = useId()
+  const phoneErrorId = useId()
+  const emailErrorId = useId()
+  const requestedAmountErrorId = useId()
+  const requestedTermMonthsErrorId = useId()
+  const idCardImageErrorId = useId()
+
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [egn, setEgn] = useState('')
@@ -365,10 +374,13 @@ export const ApplyPage = () => {
                   setFirstName(event.target.value)
                 }}
                 aria-invalid={Boolean(errors.firstName)}
+                aria-describedby={errors.firstName ? firstNameErrorId : undefined}
                 className={inputClassName(Boolean(errors.firstName))}
               />
               {errors.firstName && (
-                <p className="mt-1.5 text-sm text-red-600">{errors.firstName}</p>
+                <p id={firstNameErrorId} className="mt-1.5 text-sm text-red-600">
+                  {errors.firstName}
+                </p>
               )}
             </div>
 
@@ -385,9 +397,14 @@ export const ApplyPage = () => {
                   setLastName(event.target.value)
                 }}
                 aria-invalid={Boolean(errors.lastName)}
+                aria-describedby={errors.lastName ? lastNameErrorId : undefined}
                 className={inputClassName(Boolean(errors.lastName))}
               />
-              {errors.lastName && <p className="mt-1.5 text-sm text-red-600">{errors.lastName}</p>}
+              {errors.lastName && (
+                <p id={lastNameErrorId} className="mt-1.5 text-sm text-red-600">
+                  {errors.lastName}
+                </p>
+              )}
             </div>
 
             <div>
@@ -404,9 +421,14 @@ export const ApplyPage = () => {
                   setEgn(event.target.value)
                 }}
                 aria-invalid={Boolean(errors.egn)}
+                aria-describedby={errors.egn ? egnErrorId : undefined}
                 className={inputClassName(Boolean(errors.egn))}
               />
-              {errors.egn && <p className="mt-1.5 text-sm text-red-600">{errors.egn}</p>}
+              {errors.egn && (
+                <p id={egnErrorId} className="mt-1.5 text-sm text-red-600">
+                  {errors.egn}
+                </p>
+              )}
             </div>
 
             <div>
@@ -422,9 +444,14 @@ export const ApplyPage = () => {
                   setPhone(event.target.value)
                 }}
                 aria-invalid={Boolean(errors.phone)}
+                aria-describedby={errors.phone ? phoneErrorId : undefined}
                 className={inputClassName(Boolean(errors.phone))}
               />
-              {errors.phone && <p className="mt-1.5 text-sm text-red-600">{errors.phone}</p>}
+              {errors.phone && (
+                <p id={phoneErrorId} className="mt-1.5 text-sm text-red-600">
+                  {errors.phone}
+                </p>
+              )}
             </div>
 
             <div className="sm:col-span-2">
@@ -440,9 +467,14 @@ export const ApplyPage = () => {
                   setEmail(event.target.value)
                 }}
                 aria-invalid={Boolean(errors.email)}
+                aria-describedby={errors.email ? emailErrorId : undefined}
                 className={inputClassName(Boolean(errors.email))}
               />
-              {errors.email && <p className="mt-1.5 text-sm text-red-600">{errors.email}</p>}
+              {errors.email && (
+                <p id={emailErrorId} className="mt-1.5 text-sm text-red-600">
+                  {errors.email}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -470,10 +502,13 @@ export const ApplyPage = () => {
                   setAmountInput(event.target.value)
                 }}
                 aria-invalid={Boolean(errors.requestedAmount)}
+                aria-describedby={errors.requestedAmount ? requestedAmountErrorId : undefined}
                 className={inputClassName(Boolean(errors.requestedAmount))}
               />
               {errors.requestedAmount && (
-                <p className="mt-1.5 text-sm text-red-600">{errors.requestedAmount}</p>
+                <p id={requestedAmountErrorId} className="mt-1.5 text-sm text-red-600">
+                  {errors.requestedAmount}
+                </p>
               )}
             </div>
 
@@ -493,10 +528,15 @@ export const ApplyPage = () => {
                   setTermInput(event.target.value)
                 }}
                 aria-invalid={Boolean(errors.requestedTermMonths)}
+                aria-describedby={
+                  errors.requestedTermMonths ? requestedTermMonthsErrorId : undefined
+                }
                 className={inputClassName(Boolean(errors.requestedTermMonths))}
               />
               {errors.requestedTermMonths && (
-                <p className="mt-1.5 text-sm text-red-600">{errors.requestedTermMonths}</p>
+                <p id={requestedTermMonthsErrorId} className="mt-1.5 text-sm text-red-600">
+                  {errors.requestedTermMonths}
+                </p>
               )}
             </div>
           </div>
@@ -564,12 +604,16 @@ export const ApplyPage = () => {
               type="file"
               accept="image/jpeg,image/png"
               onChange={handleFileInputChange}
+              aria-invalid={Boolean(errors.idCardImage)}
+              aria-describedby={errors.idCardImage ? idCardImageErrorId : undefined}
               className="sr-only"
             />
           </div>
 
           {errors.idCardImage && (
-            <p className="mt-2 text-sm text-red-600">{errors.idCardImage}</p>
+            <p id={idCardImageErrorId} className="mt-2 text-sm text-red-600">
+              {errors.idCardImage}
+            </p>
           )}
         </div>
 
