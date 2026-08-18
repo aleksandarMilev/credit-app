@@ -69,6 +69,42 @@ const isProblemDetails = (value: unknown): value is ApiErrorDetails => {
   )
 }
 
+interface ValidationProblemDetailsShape {
+  status: number
+  title: string
+  errors: Record<string, string[]>
+}
+
+// [ApiController]'s built-in model validation (any [Required]/
+// [StringLength] failure with no matching FluentResults typed error —
+// e.g. LoginWebModel, which has no custom ErrorMessage attributes) skips
+// ResultProfile entirely and returns this shape instead of the app's own
+// {status,title,detail} ProblemDetails: {status,title,errors: {field:
+// [messages]}}, no top-level detail string.
+const isValidationProblemDetails = (value: unknown): value is ValidationProblemDetailsShape => {
+  if (typeof value !== 'object' || value === null) {
+    return false
+  }
+
+  const candidate = value as Record<string, unknown>
+
+  if (
+    typeof candidate.status !== 'number' ||
+    typeof candidate.title !== 'string' ||
+    typeof candidate.errors !== 'object' ||
+    candidate.errors === null
+  ) {
+    return false
+  }
+
+  return Object.values(candidate.errors as Record<string, unknown>).every(
+    (messages) => Array.isArray(messages) && messages.every((message) => typeof message === 'string'),
+  )
+}
+
+const extractValidationDetail = (errors: Record<string, string[]>): string =>
+  Object.values(errors).flat().join(' ')
+
 const networkError = (): ApiErrorDetails => ({
   status: 0,
   title: 'Network Error',
@@ -76,14 +112,24 @@ const networkError = (): ApiErrorDetails => ({
 })
 
 // Matches the ProblemDetails shape produced by the backend's CreateProblem
-// helper in ResultProfile.cs (status/title/detail). Falls back to a generic
-// Bulgarian message if the body isn't that shape for some reason.
+// helper in ResultProfile.cs (status/title/detail), or falls back to
+// extracting a detail from ASP.NET Core's automatic ValidationProblemDetails
+// shape (see isValidationProblemDetails above). Falls back further to a
+// generic Bulgarian message if the body isn't either shape.
 const parseErrorResponse = async (response: Response): Promise<ApiErrorDetails> => {
   try {
     const body: unknown = await response.json()
 
     if (isProblemDetails(body)) {
       return body
+    }
+
+    if (isValidationProblemDetails(body)) {
+      return {
+        status: body.status,
+        title: body.title,
+        detail: extractValidationDetail(body.errors),
+      }
     }
   } catch {
     // response body wasn't valid JSON — fall through to the generic error below

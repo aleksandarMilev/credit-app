@@ -182,6 +182,60 @@ describe('apiFetch', () => {
     })
   })
 
+  it('extracts a detail message from an ASP.NET Core ValidationProblemDetails response', async () => {
+    stubFetch(
+      createJsonResponse(
+        {
+          type: 'https://tools.ietf.org/html/rfc9110#section-15.5.1',
+          title: 'One or more validation errors occurred.',
+          status: 400,
+          errors: {
+            Password: [
+              "The field Password must be a string or array type with a minimum length of '6'.",
+            ],
+          },
+          traceId: '00-abc-def-00',
+        },
+        400,
+      ),
+    )
+
+    const result = await apiFetch('/identity/login/')
+
+    expect(result).toEqual({
+      ok: false,
+      error: {
+        status: 400,
+        title: 'One or more validation errors occurred.',
+        detail: "The field Password must be a string or array type with a minimum length of '6'.",
+      },
+    })
+  })
+
+  it('joins error messages from multiple fields in a ValidationProblemDetails response', async () => {
+    stubFetch(
+      createJsonResponse(
+        {
+          title: 'One or more validation errors occurred.',
+          status: 400,
+          errors: {
+            Credentials: ['Credentials error message.'],
+            Password: ['Password error message.'],
+          },
+        },
+        400,
+      ),
+    )
+
+    const result = await apiFetch('/identity/login/')
+
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.error.detail).toContain('Credentials error message.')
+      expect(result.error.detail).toContain('Password error message.')
+    }
+  })
+
   it('returns a network-error result when fetch itself rejects', async () => {
     const fetchMock = vi.fn<typeof fetch>().mockRejectedValue(new TypeError('Failed to fetch'))
     vi.stubGlobal('fetch', fetchMock)

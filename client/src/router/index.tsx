@@ -1,5 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom'
 import { RootLayout } from '@/layouts/RootLayout'
+import { StaffLayout } from '@/layouts/StaffLayout'
 import { AdminApplicationDetailPage } from '@/pages/AdminApplicationDetailPage'
 import { AdminQueuePage } from '@/pages/AdminQueuePage'
 import { ApplyPage } from '@/pages/ApplyPage'
@@ -37,12 +38,17 @@ export const router = createBrowserRouter([
     element: <ProtectedRoute />,
     children: [
       {
-        path: 'admin',
-        element: <AdminQueuePage />,
-      },
-      {
-        path: 'admin/applications/:id',
-        element: <AdminApplicationDetailPage />,
+        element: <StaffLayout />,
+        children: [
+          {
+            path: 'admin',
+            element: <AdminQueuePage />,
+          },
+          {
+            path: 'admin/applications/:id',
+            element: <AdminApplicationDetailPage />,
+          },
+        ],
       },
     ],
   },

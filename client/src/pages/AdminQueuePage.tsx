@@ -36,7 +36,7 @@ export const AdminQueuePage = () => {
   const totalPages = query.data ? Math.max(1, Math.ceil(query.data.totalCount / PAGE_SIZE)) : 1
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-8 sm:px-6 lg:px-8">
+    <div className="px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-5xl">
         <h1 className="text-2xl font-bold text-gray-900">Опашка от кандидатури</h1>
         <p className="mt-1 text-sm text-gray-500">Преглед на подадените кандидатури за кредит.</p>

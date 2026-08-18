@@ -10,6 +10,48 @@ interface LoginResponse {
 
 const ADMIN_ROUTE = '/admin'
 
+const CREDENTIALS_MIN_LENGTH = 3
+const CREDENTIALS_MAX_LENGTH = 254
+const PASSWORD_MIN_LENGTH = 6
+const PASSWORD_MAX_LENGTH = 128
+
+interface FormErrors {
+  credentials?: string
+  password?: string
+}
+
+// Mirrors LoginWebModel's [Required]/[StringLength] bounds — for fast
+// feedback only, the server re-validates everything regardless of what
+// this returns.
+const validateForm = (credentials: string, password: string): FormErrors => {
+  const errors: FormErrors = {}
+
+  if (!credentials.trim()) {
+    errors.credentials = 'Потребителското име или имейлът е задължителен.'
+  } else if (
+    credentials.trim().length < CREDENTIALS_MIN_LENGTH ||
+    credentials.trim().length > CREDENTIALS_MAX_LENGTH
+  ) {
+    errors.credentials = `Потребителското име или имейлът трябва да е между ${String(CREDENTIALS_MIN_LENGTH)} и ${String(CREDENTIALS_MAX_LENGTH)} символа.`
+  }
+
+  if (!password) {
+    errors.password = 'Паролата е задължителна.'
+  } else if (password.length < PASSWORD_MIN_LENGTH || password.length > PASSWORD_MAX_LENGTH) {
+    errors.password = `Паролата трябва да е между ${String(PASSWORD_MIN_LENGTH)} и ${String(PASSWORD_MAX_LENGTH)} символа.`
+  }
+
+  return errors
+}
+
+const inputClassName = (hasError: boolean) =>
+  [
+    'mt-1.5 block w-full rounded-lg border bg-white px-3.5 py-2.5 text-base text-gray-900 shadow-sm outline-none transition-colors focus:ring-2 sm:text-sm',
+    hasError
+      ? 'border-red-400 focus:border-red-500 focus:ring-red-500/30'
+      : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500/30',
+  ].join(' ')
+
 export const LoginPage = () => {
   const navigate = useNavigate()
   const login = useAuthStore((state) => state.login)
@@ -19,18 +61,26 @@ export const LoginPage = () => {
 
   const [credentials, setCredentials] = useState('')
   const [password, setPassword] = useState('')
+  const [errors, setErrors] = useState<FormErrors>({})
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault()
 
+    const validationErrors = validateForm(credentials, password)
+    setErrors(validationErrors)
+
+    if (Object.keys(validationErrors).length > 0) {
+      return
+    }
+
     setErrorMessage(null)
     setIsSubmitting(true)
 
     const result = await apiFetch<LoginResponse>('/identity/login/', {
       method: 'POST',
-      body: { credentials, password },
+      body: { credentials: credentials.trim(), password },
     })
 
     setIsSubmitting(false)
@@ -60,6 +110,7 @@ export const LoginPage = () => {
           onSubmit={(event) => {
             void handleSubmit(event)
           }}
+          noValidate
         >
           <div>
             <label htmlFor={credentialsId} className="block text-sm font-medium text-gray-700">
@@ -69,13 +120,16 @@ export const LoginPage = () => {
               id={credentialsId}
               type="text"
               autoComplete="username"
-              required
               value={credentials}
               onChange={(event) => {
                 setCredentials(event.target.value)
               }}
-              className="mt-1.5 block w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-base text-gray-900 shadow-sm outline-none transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30 sm:text-sm"
+              aria-invalid={Boolean(errors.credentials)}
+              className={inputClassName(Boolean(errors.credentials))}
             />
+            {errors.credentials && (
+              <p className="mt-1.5 text-sm text-red-600">{errors.credentials}</p>
+            )}
           </div>
 
           <div>
@@ -86,13 +140,14 @@ export const LoginPage = () => {
               id={passwordId}
               type="password"
               autoComplete="current-password"
-              required
               value={password}
               onChange={(event) => {
                 setPassword(event.target.value)
               }}
-              className="mt-1.5 block w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-base text-gray-900 shadow-sm outline-none transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30 sm:text-sm"
+              aria-invalid={Boolean(errors.password)}
+              className={inputClassName(Boolean(errors.password))}
             />
+            {errors.password && <p className="mt-1.5 text-sm text-red-600">{errors.password}</p>}
           </div>
 
           {errorMessage && (

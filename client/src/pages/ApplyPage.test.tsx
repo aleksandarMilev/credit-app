@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -42,6 +42,33 @@ const createValidIdCardFile = () =>
   new File([new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 0, 0, 0])], 'id-card.jpg', {
     type: 'image/jpeg',
   })
+
+// jsdom's DataTransfer doesn't support constructing a real FileList, so
+// fireEvent.drop needs a plain object shaped like one — including .item(),
+// since handleDrop reads event.dataTransfer.files.item(0).
+const createFileList = (files: File[]): FileList => {
+  const fileList: Record<PropertyKey, unknown> = {
+    length: files.length,
+    item: (index: number) => files[index] ?? null,
+  }
+  files.forEach((file, index) => {
+    fileList[index] = file
+  })
+  return fileList as unknown as FileList
+}
+
+// The dropzone <div> (holding onDragOver/onDrop/onDragLeave) has no
+// independent role/label of its own — it's the file input's direct parent
+// in the JSX, so this reuses the already-established getByLabelText query
+// rather than adding a test-only attribute.
+const getDropzone = (): HTMLElement => {
+  const fileInput = screen.getByLabelText('изберете от компютъра')
+  const dropzone = fileInput.parentElement
+  if (!dropzone) {
+    throw new Error('Expected the file input to have a parent dropzone element')
+  }
+  return dropzone
+}
 
 const getSubmittedRequest = (): { path: string; body: FormData } => {
   const call = mockedApiFetch.mock.calls.at(0)
@@ -175,5 +202,61 @@ describe('ApplyPage', () => {
     await waitFor(() => {
       expect(screen.getByText('Кандидатурата е изпратена успешно!')).toBeInTheDocument()
     })
+  })
+
+  it('selects a dropped file and shows its preview', () => {
+    renderApplyPage()
+    const file = createValidIdCardFile()
+
+    fireEvent.drop(getDropzone(), { dataTransfer: { files: createFileList([file]) } })
+
+    expect(screen.getByText('id-card.jpg')).toBeInTheDocument()
+    expect(
+      screen.getByAltText('Преглед на качената снимка на личната карта'),
+    ).toHaveAttribute('src', 'blob:mock-preview-url')
+  })
+
+  it('clears a validation error for the image once a valid file is dropped', async () => {
+    const user = userEvent.setup()
+    renderApplyPage()
+
+    await user.click(screen.getByRole('button', { name: 'Изпрати кандидатурата' }))
+    expect(screen.getByText('Снимката на личната карта е задължителна.')).toBeInTheDocument()
+
+    fireEvent.drop(getDropzone(), {
+      dataTransfer: { files: createFileList([createValidIdCardFile()]) },
+    })
+
+    expect(
+      screen.queryByText('Снимката на личната карта е задължителна.'),
+    ).not.toBeInTheDocument()
+  })
+
+  it('toggles the drag-over visual state on dragOver and dragLeave', () => {
+    renderApplyPage()
+    const dropzone = getDropzone()
+
+    expect(dropzone.className).not.toContain('border-primary-500')
+
+    fireEvent.dragOver(dropzone, { dataTransfer: { files: createFileList([]) } })
+    expect(dropzone.className).toContain('border-primary-500')
+    expect(dropzone.className).toContain('bg-primary-100/60')
+
+    fireEvent.dragLeave(dropzone)
+    expect(dropzone.className).not.toContain('border-primary-500')
+  })
+
+  it('clears the drag-over visual state after a drop', () => {
+    renderApplyPage()
+    const dropzone = getDropzone()
+
+    fireEvent.dragOver(dropzone, { dataTransfer: { files: createFileList([]) } })
+    expect(dropzone.className).toContain('border-primary-500')
+
+    fireEvent.drop(dropzone, {
+      dataTransfer: { files: createFileList([createValidIdCardFile()]) },
+    })
+
+    expect(dropzone.className).not.toContain('border-primary-500')
   })
 })
