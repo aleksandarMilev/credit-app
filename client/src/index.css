@@ -1,9 +1,6 @@
 @import 'tailwindcss';
 
 @theme {
-  /* Primary — confident blue. Deliberately not Tailwind's default "indigo",
-     which is the single most overused SaaS-template hue; a true blue reads
-     as financial/trustworthy without the generic purple lean. */
   --color-primary-50: #eff6ff;
   --color-primary-100: #dbeafe;
   --color-primary-200: #bfdbfe;
@@ -16,9 +13,6 @@
   --color-primary-900: #1e3a8a;
   --color-primary-950: #172554;
 
-  /* Accent — warm amber, reserved for calls to action and icon highlights.
-     Paired against primary blue for deliberate contrast/energy rather than
-     a monochrome single-hue site. */
   --color-accent-50: #fffbeb;
   --color-accent-100: #fef3c7;
   --color-accent-200: #fde68a;

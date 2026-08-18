@@ -3,9 +3,6 @@ import userEvent from '@testing-library/user-event'
 import { LoanCalculator } from '@/components/LoanCalculator'
 import { formatCurrency } from '@/lib/formatCurrency'
 
-// React Testing Library's default text normalizer collapses all whitespace
-// (including the non-breaking space Intl.NumberFormat uses) to a plain space
-// before matching — normalize our expected currency string the same way.
 const normalizeWhitespace = (value: string) => value.replace(/\s/g, ' ')
 
 const setLoanInputs = async (amount: string, termMonths: string) => {

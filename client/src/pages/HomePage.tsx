@@ -24,7 +24,6 @@ interface Benefit {
   icon: LucideIcon
 }
 
-// Confirmed application flow from product-description.md — not a placeholder
 const steps: HowItWorksStep[] = [
   {
     title: 'Изчисли',
@@ -48,7 +47,6 @@ const steps: HowItWorksStep[] = [
   },
 ]
 
-// Placeholder benefit messaging — pending real trust/marketing copy from Anton
 const benefits: Benefit[] = [
   {
     title: 'Бърз процес',
