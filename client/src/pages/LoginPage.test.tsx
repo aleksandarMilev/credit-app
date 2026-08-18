@@ -98,6 +98,47 @@ describe('LoginPage', () => {
     expect(screen.queryByText('Admin queue placeholder')).not.toBeInTheDocument()
   })
 
+  it('blocks submission and shows required-field messages when both fields are empty', async () => {
+    const user = userEvent.setup()
+    renderLoginPage()
+
+    await user.click(screen.getByRole('button', { name: 'Вход' }))
+
+    expect(
+      screen.getByText('Потребителското име или имейлът е задължителен.'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Паролата е задължителна.')).toBeInTheDocument()
+    expect(mockedApiFetch).not.toHaveBeenCalled()
+  })
+
+  it('blocks submission and shows a length message for credentials shorter than 3 characters', async () => {
+    const user = userEvent.setup()
+    renderLoginPage()
+
+    await user.type(screen.getByLabelText('Потребителско име или имейл'), 'ab')
+    await user.type(screen.getByLabelText('Парола'), 'Password123')
+    await user.click(screen.getByRole('button', { name: 'Вход' }))
+
+    expect(
+      screen.getByText('Потребителското име или имейлът трябва да е между 3 и 254 символа.'),
+    ).toBeInTheDocument()
+    expect(mockedApiFetch).not.toHaveBeenCalled()
+  })
+
+  it('blocks submission and shows a length message for a password shorter than 6 characters', async () => {
+    const user = userEvent.setup()
+    renderLoginPage()
+
+    await user.type(screen.getByLabelText('Потребителско име или имейл'), 'approver.dev')
+    await user.type(screen.getByLabelText('Парола'), 'abc')
+    await user.click(screen.getByRole('button', { name: 'Вход' }))
+
+    expect(
+      screen.getByText('Паролата трябва да е между 6 и 128 символа.'),
+    ).toBeInTheDocument()
+    expect(mockedApiFetch).not.toHaveBeenCalled()
+  })
+
   it('disables the submit button and shows a loading label while the request is in flight', async () => {
     let resolveRequest: (value: ApiResult<{ token: string }>) => void = () => undefined
     mockedApiFetch.mockReturnValue(
