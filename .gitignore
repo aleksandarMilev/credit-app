@@ -1,0 +1,13 @@
+.env*
+!.env.example
+appsettings.* 
+.vscode/
+api-*.yaml
+api-*.json
+
+.vscode/
+client/.vscode/
+
+CLAUDE.md
+.claude/
+product-description.md

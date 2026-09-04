@@ -1,0 +1,109 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres-dev
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data_dev:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  seq:
+    image: datalust/seq:latest
+    container_name: seq-dev
+    restart: always
+    environment:
+      ACCEPT_EULA: "Y"
+    ports:
+      - "5341:80"
+    volumes:
+      - seq_data_dev:/data
+    networks:
+      - backend
+
+  server:
+    build:
+      context: .
+      dockerfile: server/CreditApp/Dockerfile.dev
+    container_name: server-dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+      seq:
+        condition: service_started
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}
+      - JwtSettings__Secret=${APP_SECRET}
+      - JwtSettings__Issuer=${ISSUER}
+      - JwtSettings__Audience=${AUDIENCE}
+      - EmailSettings__Host=${SMTP_HOST}
+      - EmailSettings__Port=${SMTP_PORT}
+      - EmailSettings__UserName=${SMTP_USER}
+      - EmailSettings__Password=${SMTP_PASSWORD}
+      - EmailSettings__From=${SMTP_FROM}
+      - EmailSettings__UseSsl=${SMTP_USE_SSL}
+      - Cors__AllowedOrigins=${CORS_ALLOWED_ORIGINS}
+      - SeedUserSettings__ApproverUsername=${SEED_APPROVER_USERNAME}
+      - SeedUserSettings__ApproverEmail=${SEED_APPROVER_EMAIL}
+      - SeedUserSettings__ApproverPassword=${SEED_APPROVER_PASSWORD}
+      - SeedUserSettings__Viewer1Username=${SEED_VIEWER1_USERNAME}
+      - SeedUserSettings__Viewer1Email=${SEED_VIEWER1_EMAIL}
+      - SeedUserSettings__Viewer1Password=${SEED_VIEWER1_PASSWORD}
+      - SeedUserSettings__Viewer2Username=${SEED_VIEWER2_USERNAME}
+      - SeedUserSettings__Viewer2Email=${SEED_VIEWER2_EMAIL}
+      - SeedUserSettings__Viewer2Password=${SEED_VIEWER2_PASSWORD}
+      - FileStorageSettings__UploadsRootPath=${UPLOADS_ROOT_PATH}
+      - EgnEncryptionSettings__Key=${EGN_ENCRYPTION_KEY}
+      - AppUrlsSettings__ClientBaseUrl=${CLIENT_BASE_URL}
+      - ApplicationRetentionSettings__SoftDeleteAfterDays=${APPLICATION_SOFT_DELETE_AFTER_DAYS}
+      - ApplicationRetentionSettings__HardDeleteGracePeriodDays=${APPLICATION_HARD_DELETE_GRACE_PERIOD_DAYS}
+      - SeqSettings__ServerUrl=${SEQ_SERVER_URL}
+    volumes:
+      - ./server:/src/server
+      - ./server/CreditApp/wwwroot:/src/server/CreditApp/wwwroot
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.dev
+    container_name: client-dev
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_REACT_APP_SERVER_URL=http://host.docker.internal:8080
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  pg_data_dev:
+  seq_data_dev:
