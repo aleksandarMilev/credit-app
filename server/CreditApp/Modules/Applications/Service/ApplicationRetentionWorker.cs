@@ -1,6 +1,7 @@
 ﻿namespace CreditApp.Modules.Applications.Service;
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 public class ApplicationRetentionWorker(
     IServiceScopeFactory scopeFactory,
@@ -8,7 +9,8 @@ public class ApplicationRetentionWorker(
 {
     private static readonly TimeSpan RunInterval = TimeSpan.FromDays(1);
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(
+        CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -18,14 +20,12 @@ public class ApplicationRetentionWorker(
             {
                 await Task.Delay(RunInterval, stoppingToken);
             }
-            catch (TaskCanceledException)
-            {
-                // Expected on shutdown - the delay was cancelled, loop exits naturally.
-            }
+            catch (TaskCanceledException) { }
         }
     }
 
-    private async Task RunRetentionSweep(CancellationToken cancellationToken)
+    private async Task RunRetentionSweep(
+        CancellationToken cancellationToken)
     {
         using var scope = scopeFactory.CreateScope();
 
@@ -48,6 +48,16 @@ public class ApplicationRetentionWorker(
             logger.LogInformation(
                 "Retention sweep: hard-deleted {Count} expired applications.",
                 hardDeletedCount);
+        }
+        catch (OptionsValidationException exception)
+        {
+            logger.LogCritical(
+                exception,
+                "Retention sweep skipped — ApplicationRetentionSettings failed validation. " +
+                "This will NOT resolve on its own; fix the SoftDeleteAfterDays/" +
+                "HardDeleteGracePeriodDays configuration and restart the application. " +
+                "Failures: {ValidationFailures}",
+                string.Join("; ", exception.Failures));
         }
         catch (Exception exception)
         {

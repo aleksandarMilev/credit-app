@@ -48,4 +48,9 @@ public static class Constants
     {
         public const int ImagePathMaxLength = 512;
     }
+
+    public static class RateLimiterPolicies
+    {
+        public const string ApplicationSubmission = "application-submission";
+    }
 }

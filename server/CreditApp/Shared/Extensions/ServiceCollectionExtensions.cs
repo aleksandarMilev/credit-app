@@ -16,7 +16,7 @@ using Modules.Identity.Shared;
 using Services.ServiceLifetimes;
 using Settings;
 
-using static Constants.Cors;
+using static Constants;
 
 public static class ServiceCollectionExtensions
 {
@@ -49,6 +49,8 @@ public static class ServiceCollectionExtensions
                         .WriteAsync("Too many requests.", token);
                 };
 
+                var isTesting = env.IsEnvironment("Testing");
+
                 options.GlobalLimiter = PartitionedRateLimiter
                     .Create<HttpContext, string>(httpContext =>
                     {
@@ -61,9 +63,35 @@ public static class ServiceCollectionExtensions
                         return RateLimitPartition
                             .GetFixedWindowLimiter(ip, _ => new()
                             {
-                                PermitLimit = env.IsDevelopment()
-                                    ? 480
-                                    : 240,
+                                PermitLimit = isTesting
+                                    ? int.MaxValue
+                                    : env.IsDevelopment()
+                                        ? 480
+                                        : 240,
+                                Window = TimeSpan.FromMinutes(1),
+                                QueueLimit = 0,
+                                AutoReplenishment = true
+                            });
+                    });
+
+                options.AddPolicy(
+                    RateLimiterPolicies.ApplicationSubmission,
+                    httpContext =>
+                    {
+                        var ip = httpContext
+                            .Connection
+                            .RemoteIpAddress?
+                            .ToString()
+                            ?? "unknown";
+
+                        return RateLimitPartition
+                            .GetFixedWindowLimiter(ip, _ => new()
+                            {
+                                PermitLimit = isTesting
+                                    ? int.MaxValue
+                                    : env.IsDevelopment()
+                                        ? 20
+                                        : 5,
                                 Window = TimeSpan.FromMinutes(1),
                                 QueueLimit = 0,
                                 AutoReplenishment = true
@@ -83,7 +111,7 @@ public static class ServiceCollectionExtensions
 
             services.AddCors(options =>
             {
-                options.AddPolicy(CorsPolicyName, policy =>
+                options.AddPolicy(Cors.CorsPolicyName, policy =>
                 {
                     if (env.IsDevelopment())
                     {
@@ -133,17 +161,26 @@ public static class ServiceCollectionExtensions
             services.Configure<SeedUserSettings>(
                 configuration.GetSection(nameof(SeedUserSettings)));
 
-            services.Configure<FileStorageSettings>(
-                configuration.GetSection(nameof(FileStorageSettings)));
-
-            services.Configure<EgnEncryptionSettings>(
-                configuration.GetSection(nameof(EgnEncryptionSettings)));
-
-            services.Configure<ApplicationRetentionSettings>(
-                configuration.GetSection(nameof(ApplicationRetentionSettings)));
-
             services.Configure<SeqSettings>(
                 configuration.GetSection(nameof(SeqSettings)));
+
+            services
+                .AddOptions<ApplicationRetentionSettings>()
+                .Bind(configuration.GetSection(nameof(ApplicationRetentionSettings)))
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
+
+            services
+                .AddOptions<FileStorageSettings>()
+                .Bind(configuration.GetSection(nameof(FileStorageSettings)))
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
+
+            services
+                .AddOptions<EgnEncryptionSettings>()
+                .Bind(configuration.GetSection(nameof(EgnEncryptionSettings)))
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
 
             return services;
         }
