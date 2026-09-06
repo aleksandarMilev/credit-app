@@ -16,7 +16,7 @@ using Modules.Identity.Shared;
 using Services.ServiceLifetimes;
 using Settings;
 
-using static Constants.Cors;
+using static Constants;
 
 public static class ServiceCollectionExtensions
 {
@@ -71,7 +71,7 @@ public static class ServiceCollectionExtensions
                     });
 
                 options.AddPolicy(
-                    "application-submission",
+                    RateLimiterPolicies.ApplicationSubmission,
                     httpContext =>
                     {
                         var ip = httpContext
@@ -103,7 +103,7 @@ public static class ServiceCollectionExtensions
 
             services.AddCors(options =>
             {
-                options.AddPolicy(CorsPolicyName, policy =>
+                options.AddPolicy(Cors.CorsPolicyName, policy =>
                 {
                     if (env.IsDevelopment())
                     {
@@ -153,17 +153,26 @@ public static class ServiceCollectionExtensions
             services.Configure<SeedUserSettings>(
                 configuration.GetSection(nameof(SeedUserSettings)));
 
-            services.Configure<FileStorageSettings>(
-                configuration.GetSection(nameof(FileStorageSettings)));
-
-            services.Configure<EgnEncryptionSettings>(
-                configuration.GetSection(nameof(EgnEncryptionSettings)));
-
-            services.Configure<ApplicationRetentionSettings>(
-                configuration.GetSection(nameof(ApplicationRetentionSettings)));
-
             services.Configure<SeqSettings>(
                 configuration.GetSection(nameof(SeqSettings)));
+
+            services
+                .AddOptions<ApplicationRetentionSettings>()
+                .Bind(configuration.GetSection(nameof(ApplicationRetentionSettings)))
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
+
+            services
+                .AddOptions<FileStorageSettings>()
+                .Bind(configuration.GetSection(nameof(FileStorageSettings)))
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
+
+            services
+                .AddOptions<EgnEncryptionSettings>()
+                .Bind(configuration.GetSection(nameof(EgnEncryptionSettings)))
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
 
             return services;
         }

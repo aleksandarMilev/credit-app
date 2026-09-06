@@ -17,6 +17,7 @@ using Web.Models;
 using static CreditApp.Shared.Constants.ApiRoutes;
 using static CreditApp.Shared.Constants.DefaultValues;
 using static CreditApp.Shared.Constants.Names;
+using static CreditApp.Shared.Constants.RateLimiterPolicies;
 using static Shared.Constants.Validation;
 
 public class ApplicationsController(
@@ -34,7 +35,7 @@ public class ApplicationsController(
         CancellationToken cancellationToken = default)
         => await service
             .GetAll(
-                new GetApplicationsQueryServiceModel(pageIndex, pageSize, status),
+                new(pageIndex, pageSize, status),
                 cancellationToken)
             .ToActionResult();
 
@@ -89,9 +90,13 @@ public class ApplicationsController(
     [HttpPost]
     [AllowAnonymous]
     [Consumes("multipart/form-data")]
-    [EnableRateLimiting("application-submission")]
-    [RequestSizeLimit(MaxIdCardImageSizeBytes + MultipartFieldOverheadBytes)]
-    [RequestFormLimits(MultipartBodyLengthLimit = MaxIdCardImageSizeBytes + MultipartFieldOverheadBytes)]
+    [EnableRateLimiting(ApplicationSubmission)]
+    [RequestSizeLimit(
+        MaxIdCardImageSizeBytes + 
+        MultipartFieldOverheadBytes)]
+    [RequestFormLimits(
+        MultipartBodyLengthLimit = 
+            MaxIdCardImageSizeBytes + MultipartFieldOverheadBytes)]
     public async Task<ActionResult<ApplicationSubmittedServiceModel>> Submit(
         [FromForm] SubmitApplicationWebModel webModel,
         CancellationToken cancellationToken = default)
