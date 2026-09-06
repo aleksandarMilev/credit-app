@@ -47,8 +47,10 @@ Fill in `.env.dev`. At minimum, for a working local instance:
 - `SEED_VIEWER1_*` / `SEED_VIEWER2_*` — the two read-only Viewer accounts (also
   optional, but leaving them blank just means those accounts won't be seeded)
 - `EGN_ENCRYPTION_KEY` — **must be a real, valid key, or the app will fail to
-  encrypt applicants' EGN.** The placeholder value in `.env.example` is not
-  valid. Generate one:
+  encrypt applicants' EGN.** The value committed in `.env.example` is a
+  syntactically valid key (so a quick local test will work without touching
+  it), but it's public in git history — never reuse it beyond a throwaway
+  local run. Generate your own for any real instance:
 
   ```powershell
   # PowerShell
@@ -76,7 +78,10 @@ a file literally named `.env`), so pass it explicitly:
 docker compose -f docker-compose.dev.yml --env-file .env.dev up
 ```
 
-This starts four containers: `postgres`, `server`, `client`, and `seq`.
+This starts five containers: `postgres`, `server`, `client`, `seq`, and
+`mailpit` (a dev-only email catcher — the server sends real SMTP traffic to
+it instead of a live mail server, so you can read applicant/status-change
+emails without any real inbox).
 
 For a production-like run, same idea with `.env.prod`:
 
@@ -90,6 +95,8 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod up
   built and served on port 80 in the prod compose file
 - **Server API**: [http://localhost:8080](http://localhost:8080)
 - **API reference (Scalar, dev only)**: [http://localhost:8080/scalar](http://localhost:8080/scalar)
+- **Mailpit (dev email catcher)**: [http://localhost:8025](http://localhost:8025) —
+  dev only; every email the server sends lands here instead of a real inbox
 - **Seq (log viewer)**: [http://localhost:5341](http://localhost:5341) — dev
   only. In prod, Seq's UI has **no published host port** (it's only reachable
   on the internal `backend` Docker network, at `http://seq:80`, to avoid
@@ -164,10 +171,10 @@ credit-app/
 
 ## Restoring from backup
 
-**Database**: dumps land in the `db_backups` volume, one gzipped `.sql` file per day.
+**Database**: dumps land in the `db_backups` volume, one gzipped `.sql.gz` file per day.
 
 ```bash
-docker exec -i postgres psql -U $DB_USER -d $DB_NAME < /path/to/dump.sql
+gunzip -c /path/to/dump.sql.gz | docker exec -i postgres psql -U $DB_USER -d $DB_NAME
 ```
 
 **Uploaded ID card images**: tarballs land in the `uploads_backups` volume.
