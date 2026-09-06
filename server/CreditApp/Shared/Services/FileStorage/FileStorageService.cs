@@ -41,17 +41,7 @@ public class FileStorageService(
         string relativePath,
         CancellationToken cancellationToken = default)
     {
-        var combinedPath = Path.Combine(
-            this.RootPath,
-            relativePath);
-
-        var uploadsRootPath = Path.GetFullPath(this.RootPath);
-        var fullPath = Path.GetFullPath(combinedPath);
-
-        if (!fullPath.StartsWith(uploadsRootPath, StringComparison.Ordinal))
-        {
-            throw new InvalidOperationException("Resolved path escapes the uploads root.");
-        }
+        var fullPath = this.ResolveContainedPath(relativePath);
 
         Stream stream = new FileStream(
             fullPath,
@@ -63,12 +53,31 @@ public class FileStorageService(
 
     public void Delete(string relativePath)
     {
-        var fullPath = Path.Combine(this.RootPath, relativePath);
+        var fullPath = this.ResolveContainedPath(relativePath);
 
         if (File.Exists(fullPath))
         {
             File.Delete(fullPath);
         }
+    }
+
+    private string ResolveContainedPath(string relativePath)
+    {
+        var uploadsRootPath = Path.GetFullPath(this.RootPath);
+
+        var normalizedRoot = uploadsRootPath.EndsWith(Path.DirectorySeparatorChar)
+            ? uploadsRootPath
+            : uploadsRootPath + Path.DirectorySeparatorChar;
+
+        var combinedPath = Path.Combine(uploadsRootPath, relativePath);
+        var fullPath = Path.GetFullPath(combinedPath);
+
+        if (!fullPath.StartsWith(normalizedRoot, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException("Resolved path escapes the uploads root.");
+        }
+
+        return fullPath;
     }
 
     private string RootPath

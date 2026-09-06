@@ -161,3 +161,18 @@ credit-app/
 - `.env.dev` / `.env.prod` — real values, **gitignored**, never commit
 - `server/appsettings.json` / `appsettings.Development.json` — also
   gitignored; used only for running the server locally outside Docker
+
+## Restoring from backup
+
+**Database**: dumps land in the `db_backups` volume, one gzipped `.sql` file per day.
+
+```bash
+docker exec -i postgres psql -U $DB_USER -d $DB_NAME < /path/to/dump.sql
+```
+
+**Uploaded ID card images**: tarballs land in the `uploads_backups` volume.
+
+```bash
+docker run --rm -v uploads_backups:/backup -v server_uploads:/restore alpine \
+  tar xzf /backup/uploads-backup-<timestamp>.tar.gz -C /restore
+```

@@ -22,7 +22,8 @@ builder
     .AddOpenApi()
     .AddHealthcheck()
     .AddMemoryCache()
-    .AddRateLimiting(builder.Environment);
+    .AddRateLimiting(builder.Environment)
+    .AddProblemDetails();
 
 AspNetCoreResult.Setup(static settings =>
 {
@@ -70,6 +71,7 @@ if (appEnvIsDev)
 else
 {
     app
+        .UseExceptionHandler()
         .UseHsts()
         .UseHttpsRedirection()
         .UseCustomForwardedHeaders();

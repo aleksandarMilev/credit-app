@@ -1,6 +1,7 @@
 ﻿namespace CreditApp.Modules.Applications.Service;
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 public class ApplicationRetentionWorker(
     IServiceScopeFactory scopeFactory,
@@ -47,6 +48,16 @@ public class ApplicationRetentionWorker(
             logger.LogInformation(
                 "Retention sweep: hard-deleted {Count} expired applications.",
                 hardDeletedCount);
+        }
+        catch (OptionsValidationException exception)
+        {
+            logger.LogCritical(
+                exception,
+                "Retention sweep skipped — ApplicationRetentionSettings failed validation. " +
+                "This will NOT resolve on its own; fix the SoftDeleteAfterDays/" +
+                "HardDeleteGracePeriodDays configuration and restart the application. " +
+                "Failures: {ValidationFailures}",
+                string.Join("; ", exception.Failures));
         }
         catch (Exception exception)
         {
