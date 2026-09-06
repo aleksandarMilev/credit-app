@@ -17,7 +17,7 @@ public class EmailSender(
         CancellationToken cancellationToken = default)
         => await this.Send(
             email,
-            "Променете вашата паролоа в CreditApp",
+            "Променете вашата парола в CreditApp",
             PasswordResetEmailTemplate.Build(resetUrl),
             cancellationToken);
 
