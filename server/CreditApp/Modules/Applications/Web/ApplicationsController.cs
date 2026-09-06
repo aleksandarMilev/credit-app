@@ -8,6 +8,7 @@ using FluentResults.Extensions;
 using FluentResults.Extensions.AspNetCore;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Service;
 using Service.Models;
 using Shared;
@@ -16,11 +17,14 @@ using Web.Models;
 using static CreditApp.Shared.Constants.ApiRoutes;
 using static CreditApp.Shared.Constants.DefaultValues;
 using static CreditApp.Shared.Constants.Names;
+using static Shared.Constants.Validation;
 
 public class ApplicationsController(
     IApplicationsService service,
     ICurrentUserService currentUser) : ApiController
 {
+    private const long MultipartFieldOverheadBytes = 64 * 1_024;
+
     [HttpGet]
     [Authorize(Roles = AllStaffRoles)]
     public async Task<ActionResult<PagedResult<ApplicationSummaryServiceModel>>> GetAll(
@@ -85,6 +89,9 @@ public class ApplicationsController(
     [HttpPost]
     [AllowAnonymous]
     [Consumes("multipart/form-data")]
+    [EnableRateLimiting("application-submission")]
+    [RequestSizeLimit(MaxIdCardImageSizeBytes + MultipartFieldOverheadBytes)]
+    [RequestFormLimits(MultipartBodyLengthLimit = MaxIdCardImageSizeBytes + MultipartFieldOverheadBytes)]
     public async Task<ActionResult<ApplicationSubmittedServiceModel>> Submit(
         [FromForm] SubmitApplicationWebModel webModel,
         CancellationToken cancellationToken = default)

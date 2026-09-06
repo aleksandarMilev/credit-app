@@ -69,6 +69,26 @@ public static class ServiceCollectionExtensions
                                 AutoReplenishment = true
                             });
                     });
+
+                options.AddPolicy(
+                    "application-submission",
+                    httpContext =>
+                    {
+                        var ip = httpContext
+                            .Connection
+                            .RemoteIpAddress?
+                            .ToString()
+                            ?? "unknown";
+
+                        return RateLimitPartition
+                            .GetFixedWindowLimiter(ip, _ => new()
+                            {
+                                PermitLimit = env.IsDevelopment() ? 20 : 5,
+                                Window = TimeSpan.FromMinutes(1),
+                                QueueLimit = 0,
+                                AutoReplenishment = true
+                            });
+                    });
             });
 
             return services;

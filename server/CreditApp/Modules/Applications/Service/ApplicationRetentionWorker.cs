@@ -8,7 +8,8 @@ public class ApplicationRetentionWorker(
 {
     private static readonly TimeSpan RunInterval = TimeSpan.FromDays(1);
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(
+        CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -18,14 +19,12 @@ public class ApplicationRetentionWorker(
             {
                 await Task.Delay(RunInterval, stoppingToken);
             }
-            catch (TaskCanceledException)
-            {
-                // Expected on shutdown - the delay was cancelled, loop exits naturally.
-            }
+            catch (TaskCanceledException) { }
         }
     }
 
-    private async Task RunRetentionSweep(CancellationToken cancellationToken)
+    private async Task RunRetentionSweep(
+        CancellationToken cancellationToken)
     {
         using var scope = scopeFactory.CreateScope();
 
