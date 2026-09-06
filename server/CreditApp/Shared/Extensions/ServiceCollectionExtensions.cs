@@ -49,6 +49,8 @@ public static class ServiceCollectionExtensions
                         .WriteAsync("Too many requests.", token);
                 };
 
+                var isTesting = env.IsEnvironment("Testing");
+
                 options.GlobalLimiter = PartitionedRateLimiter
                     .Create<HttpContext, string>(httpContext =>
                     {
@@ -61,9 +63,11 @@ public static class ServiceCollectionExtensions
                         return RateLimitPartition
                             .GetFixedWindowLimiter(ip, _ => new()
                             {
-                                PermitLimit = env.IsDevelopment()
-                                    ? 480
-                                    : 240,
+                                PermitLimit = isTesting
+                                    ? int.MaxValue
+                                    : env.IsDevelopment()
+                                        ? 480
+                                        : 240,
                                 Window = TimeSpan.FromMinutes(1),
                                 QueueLimit = 0,
                                 AutoReplenishment = true
@@ -83,7 +87,11 @@ public static class ServiceCollectionExtensions
                         return RateLimitPartition
                             .GetFixedWindowLimiter(ip, _ => new()
                             {
-                                PermitLimit = env.IsDevelopment() ? 20 : 5,
+                                PermitLimit = isTesting
+                                    ? int.MaxValue
+                                    : env.IsDevelopment()
+                                        ? 20
+                                        : 5,
                                 Window = TimeSpan.FromMinutes(1),
                                 QueueLimit = 0,
                                 AutoReplenishment = true
