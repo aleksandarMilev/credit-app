@@ -13,13 +13,4 @@ public class CurrentUserService(
 
     public string? GetUsername()
         => this.User?.Identity?.Name;
-
-    public string? GetId()
-        => this.User?.GetId();
-
-    public bool IsApprover()
-        => this.User?.IsInRole(ApproverRoleName) ?? false;
-
-    public bool IsViewer()
-        => this.User?.IsInRole(ViewerRoleName) ?? false;
 }

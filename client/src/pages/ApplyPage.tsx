@@ -8,7 +8,18 @@ import {
   type SyntheticEvent,
 } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { CheckCircle2, IdCard, ImageUp, User, Wallet, X } from 'lucide-react'
+import { motion, useReducedMotion, type Variants } from 'framer-motion'
+import {
+  ArrowRight,
+  CheckCircle2,
+  CircleAlert,
+  IdCard,
+  ImageUp,
+  Loader2,
+  User,
+  Wallet,
+  X,
+} from 'lucide-react'
 import { apiFetch } from '@/lib/apiClient'
 import { isValidEgn } from '@/lib/egnValidation'
 import { MAX_LOAN_AMOUNT, MAX_TERM_MONTHS } from '@/lib/loanCalculations'
@@ -43,6 +54,8 @@ const EXTENSION_CONTENT_TYPES: Record<string, string> = {
   '.jpeg': 'image/jpeg',
   '.png': 'image/png',
 }
+
+const EASE = [0.22, 1, 0.36, 1] as const
 
 interface FormErrors {
   firstName?: string
@@ -166,10 +179,10 @@ const validateForm = (values: FormValues): FormErrors => {
 
 const inputClassName = (hasError: boolean) =>
   [
-    'mt-1.5 block w-full rounded-lg border bg-white px-3.5 py-2.5 text-base text-gray-900 shadow-sm outline-none transition-colors focus:ring-2 sm:text-sm',
+    'mt-1.5 block w-full rounded-xl border bg-white px-3.5 py-2.5 text-base text-stone-900 shadow-sm outline-none transition-colors focus:ring-2 sm:text-sm',
     hasError
-      ? 'border-red-400 focus:border-red-500 focus:ring-red-500/30'
-      : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500/30',
+      ? 'border-terracotta-400 focus:border-terracotta-500 focus:ring-terracotta-500/30'
+      : 'border-stone-200 focus:border-pine-500 focus:ring-pine-500/30',
   ].join(' ')
 
 interface ApplicationSubmittedResponse {
@@ -179,6 +192,7 @@ interface ApplicationSubmittedResponse {
 export const ApplyPage = () => {
   const location = useLocation()
   const prefill = isApplyLocationState(location.state) ? location.state : null
+  const shouldReduceMotion = useReducedMotion()
 
   const firstNameId = useId()
   const lastNameId = useId()
@@ -232,6 +246,17 @@ export const ApplyPage = () => {
       }
     }
   }, [previewUrl])
+
+  const fadeUp: Variants = shouldReduceMotion
+    ? { hidden: { opacity: 1 }, visible: { opacity: 1 } }
+    : {
+        hidden: { opacity: 0, y: 24 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE } },
+      }
+
+  const staggerContainer: Variants = shouldReduceMotion
+    ? { hidden: {}, visible: {} }
+    : { hidden: {}, visible: { transition: { staggerChildren: 0.12, delayChildren: 0.1 } } }
 
   const handleFileSelected = (file: File) => {
     setIdCardImage(file)
@@ -312,57 +337,104 @@ export const ApplyPage = () => {
 
   if (isSubmitted) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary-50 via-white to-accent-50 px-4 py-12 sm:px-6">
-        <div className="w-full max-w-lg rounded-2xl bg-white p-8 text-center shadow-2xl ring-1 ring-gray-900/5 sm:p-10">
-          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary-600 text-white shadow-sm">
-            <CheckCircle2 className="h-7 w-7" aria-hidden="true" />
-          </span>
-          <h1 className="mt-5 text-2xl font-bold text-gray-900">
+      <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-cream px-4 py-12 sm:px-6">
+        <div
+          className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-pine-100 via-cream to-sunny-100"
+          aria-hidden="true"
+        />
+        <div
+          className="pointer-events-none absolute top-[-15%] right-[-10%] -z-10 h-80 w-80 rounded-[55%_45%_40%_60%/40%_60%_45%_55%] bg-terracotta-100/60 blur-3xl"
+          aria-hidden="true"
+        />
+
+        <motion.div
+          initial={shouldReduceMotion ? undefined : { opacity: 0, y: 24, scale: 0.96 }}
+          animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.55, ease: EASE }}
+          className="w-full max-w-lg rounded-3xl bg-white p-8 text-center shadow-2xl ring-1 ring-stone-900/5 sm:p-10"
+        >
+          <motion.span
+            initial={shouldReduceMotion ? undefined : { scale: 0.6, rotate: -8 }}
+            animate={shouldReduceMotion ? undefined : { scale: 1, rotate: 0 }}
+            transition={{ duration: 0.5, delay: 0.15, ease: EASE }}
+            className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-pine-600 text-white shadow-md"
+          >
+            <CheckCircle2 className="h-8 w-8" aria-hidden="true" />
+          </motion.span>
+          <h1 className="mt-6 text-2xl font-extrabold tracking-tight text-stone-900 sm:text-3xl">
             Кандидатурата е изпратена успешно!
           </h1>
-          <p className="mt-3 text-base text-gray-600">
+          <p className="mt-3 text-base text-stone-600">
             Изпратихме потвърждение на посочения от вас имейл адрес. Нашият екип ще прегледа
             заявлението ви и ще се свърже с вас с решение.
           </p>
-          <Link
-            to="/"
-            className="mt-8 inline-flex items-center justify-center rounded-lg bg-primary-600 px-6 py-3 text-base font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:ring-offset-2"
+          <motion.span
+            whileHover={shouldReduceMotion ? undefined : { scale: 1.03 }}
+            whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}
+            className="mt-8 inline-block"
           >
-            Обратно към началната страница
-          </Link>
-        </div>
+            <Link
+              to="/"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-pine-600 px-6 py-3.5 text-base font-bold text-white shadow-[0_4px_0_0_var(--color-pine-800)] transition-colors duration-200 hover:bg-pine-700 focus:outline-none focus:ring-4 focus:ring-pine-200"
+            >
+              Обратно към началната страница
+            </Link>
+          </motion.span>
+        </motion.div>
       </div>
     )
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center bg-gradient-to-b from-primary-50 via-white to-white px-4 py-10 sm:px-6 sm:py-16 lg:px-8">
-      <div className="max-w-2xl text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+    <div className="relative flex min-h-screen flex-col items-center overflow-hidden bg-cream px-4 py-10 sm:px-6 sm:py-16 lg:px-8">
+      <div
+        className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-pine-50 via-cream to-cream"
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute top-[-10%] left-[-10%] -z-10 h-80 w-80 rounded-[55%_45%_40%_60%/40%_60%_45%_55%] bg-terracotta-100/60 blur-3xl"
+        aria-hidden="true"
+      />
+
+      <motion.div
+        initial={shouldReduceMotion ? undefined : { opacity: 0, y: 20 }}
+        animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+        transition={{ duration: 0.55, ease: EASE }}
+        className="max-w-2xl text-center"
+      >
+        <h1 className="text-3xl font-extrabold tracking-tight text-stone-900 sm:text-4xl">
           Кандидатствай за кредит
         </h1>
-        <p className="mt-3 text-base text-gray-600 sm:text-lg">
+        <p className="mt-3 text-base text-stone-600 sm:text-lg">
           Попълни данните си и качи снимка на личната карта — целият процес отнема само няколко
           минути.
         </p>
-      </div>
+      </motion.div>
 
-      <form
+      <motion.form
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
         className="mt-10 w-full max-w-2xl space-y-6"
         onSubmit={(event) => {
           void handleSubmit(event)
         }}
         noValidate
       >
-        <div className="rounded-2xl bg-white p-6 shadow-xl ring-1 ring-gray-900/5 sm:p-8">
-          <div className="flex items-center gap-2">
-            <User className="h-5 w-5 text-primary-600" aria-hidden="true" />
-            <h2 className="text-base font-semibold text-gray-900">Лични данни</h2>
+        <motion.div
+          variants={fadeUp}
+          className="rounded-3xl bg-white p-6 shadow-lg ring-1 ring-stone-900/5 sm:p-8"
+        >
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-pine-50 text-pine-700 ring-1 ring-pine-100">
+              <User className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <h2 className="text-lg font-bold text-stone-900">Лични данни</h2>
           </div>
 
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label htmlFor={firstNameId} className="block text-sm font-medium text-gray-700">
+              <label htmlFor={firstNameId} className="block text-sm font-medium text-stone-700">
                 Име
               </label>
               <input
@@ -378,14 +450,14 @@ export const ApplyPage = () => {
                 className={inputClassName(Boolean(errors.firstName))}
               />
               {errors.firstName && (
-                <p id={firstNameErrorId} className="mt-1.5 text-sm text-red-600">
+                <p id={firstNameErrorId} className="mt-1.5 text-sm text-terracotta-600">
                   {errors.firstName}
                 </p>
               )}
             </div>
 
             <div>
-              <label htmlFor={lastNameId} className="block text-sm font-medium text-gray-700">
+              <label htmlFor={lastNameId} className="block text-sm font-medium text-stone-700">
                 Фамилия
               </label>
               <input
@@ -401,14 +473,14 @@ export const ApplyPage = () => {
                 className={inputClassName(Boolean(errors.lastName))}
               />
               {errors.lastName && (
-                <p id={lastNameErrorId} className="mt-1.5 text-sm text-red-600">
+                <p id={lastNameErrorId} className="mt-1.5 text-sm text-terracotta-600">
                   {errors.lastName}
                 </p>
               )}
             </div>
 
             <div>
-              <label htmlFor={egnId} className="block text-sm font-medium text-gray-700">
+              <label htmlFor={egnId} className="block text-sm font-medium text-stone-700">
                 ЕГН
               </label>
               <input
@@ -425,14 +497,14 @@ export const ApplyPage = () => {
                 className={inputClassName(Boolean(errors.egn))}
               />
               {errors.egn && (
-                <p id={egnErrorId} className="mt-1.5 text-sm text-red-600">
+                <p id={egnErrorId} className="mt-1.5 text-sm text-terracotta-600">
                   {errors.egn}
                 </p>
               )}
             </div>
 
             <div>
-              <label htmlFor={phoneId} className="block text-sm font-medium text-gray-700">
+              <label htmlFor={phoneId} className="block text-sm font-medium text-stone-700">
                 Телефон
               </label>
               <input
@@ -448,14 +520,14 @@ export const ApplyPage = () => {
                 className={inputClassName(Boolean(errors.phone))}
               />
               {errors.phone && (
-                <p id={phoneErrorId} className="mt-1.5 text-sm text-red-600">
+                <p id={phoneErrorId} className="mt-1.5 text-sm text-terracotta-600">
                   {errors.phone}
                 </p>
               )}
             </div>
 
             <div className="sm:col-span-2">
-              <label htmlFor={emailId} className="block text-sm font-medium text-gray-700">
+              <label htmlFor={emailId} className="block text-sm font-medium text-stone-700">
                 Имейл
               </label>
               <input
@@ -471,23 +543,28 @@ export const ApplyPage = () => {
                 className={inputClassName(Boolean(errors.email))}
               />
               {errors.email && (
-                <p id={emailErrorId} className="mt-1.5 text-sm text-red-600">
+                <p id={emailErrorId} className="mt-1.5 text-sm text-terracotta-600">
                   {errors.email}
                 </p>
               )}
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="rounded-2xl bg-white p-6 shadow-xl ring-1 ring-gray-900/5 sm:p-8">
-          <div className="flex items-center gap-2">
-            <Wallet className="h-5 w-5 text-primary-600" aria-hidden="true" />
-            <h2 className="text-base font-semibold text-gray-900">Параметри на кредита</h2>
+        <motion.div
+          variants={fadeUp}
+          className="rounded-3xl bg-white p-6 shadow-lg ring-1 ring-stone-900/5 sm:p-8"
+        >
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-terracotta-50 text-terracotta-600 ring-1 ring-terracotta-100">
+              <Wallet className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <h2 className="text-lg font-bold text-stone-900">Параметри на кредита</h2>
           </div>
 
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label htmlFor={amountId} className="block text-sm font-medium text-gray-700">
+              <label htmlFor={amountId} className="block text-sm font-medium text-stone-700">
                 Желана сума
               </label>
               <input
@@ -506,14 +583,14 @@ export const ApplyPage = () => {
                 className={inputClassName(Boolean(errors.requestedAmount))}
               />
               {errors.requestedAmount && (
-                <p id={requestedAmountErrorId} className="mt-1.5 text-sm text-red-600">
+                <p id={requestedAmountErrorId} className="mt-1.5 text-sm text-terracotta-600">
                   {errors.requestedAmount}
                 </p>
               )}
             </div>
 
             <div>
-              <label htmlFor={termId} className="block text-sm font-medium text-gray-700">
+              <label htmlFor={termId} className="block text-sm font-medium text-stone-700">
                 Срок (месеци)
               </label>
               <input
@@ -534,20 +611,25 @@ export const ApplyPage = () => {
                 className={inputClassName(Boolean(errors.requestedTermMonths))}
               />
               {errors.requestedTermMonths && (
-                <p id={requestedTermMonthsErrorId} className="mt-1.5 text-sm text-red-600">
+                <p id={requestedTermMonthsErrorId} className="mt-1.5 text-sm text-terracotta-600">
                   {errors.requestedTermMonths}
                 </p>
               )}
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="rounded-2xl border-2 border-dashed border-primary-200 bg-primary-50/40 p-6 sm:p-8">
-          <div className="flex items-center gap-2">
-            <IdCard className="h-5 w-5 text-primary-600" aria-hidden="true" />
-            <h2 className="text-base font-semibold text-gray-900">Снимка на личната карта</h2>
+        <motion.div
+          variants={fadeUp}
+          className="rounded-3xl bg-white p-6 shadow-lg ring-1 ring-stone-900/5 sm:p-8"
+        >
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sunny-50 text-sunny-700 ring-1 ring-sunny-100">
+              <IdCard className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <h2 className="text-lg font-bold text-stone-900">Снимка на личната карта</h2>
           </div>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-stone-500">
             Качете ясна снимка на личната си карта (JPG или PNG, до 10 MB).
           </p>
 
@@ -560,8 +642,8 @@ export const ApplyPage = () => {
               setIsDragging(false)
             }}
             onDrop={handleDrop}
-            className={`mt-4 flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 text-center transition-colors ${
-              isDragging ? 'border-primary-500 bg-primary-100/60' : 'border-gray-300 bg-white'
+            className={`mt-4 flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 text-center transition-colors ${
+              isDragging ? 'border-sunny-500 bg-sunny-100/60' : 'border-sunny-200 bg-sunny-50/40'
             }`}
           >
             {idCardImage ? (
@@ -570,16 +652,16 @@ export const ApplyPage = () => {
                   <img
                     src={previewUrl}
                     alt="Преглед на качената снимка на личната карта"
-                    className="h-32 w-auto rounded-lg object-cover shadow-sm"
+                    className="h-32 w-auto rounded-xl object-cover shadow-sm ring-1 ring-stone-900/10"
                   />
                 )}
-                <div className="flex items-center gap-2 text-sm text-gray-700">
+                <div className="flex items-center gap-2 text-sm text-stone-700">
                   <span>{idCardImage.name}</span>
                   <button
                     type="button"
                     onClick={handleRemoveFile}
                     aria-label="Премахни файла"
-                    className="text-gray-400 transition-colors hover:text-red-600"
+                    className="text-stone-400 transition-colors hover:text-terracotta-600"
                   >
                     <X className="h-4 w-4" aria-hidden="true" />
                   </button>
@@ -587,12 +669,12 @@ export const ApplyPage = () => {
               </div>
             ) : (
               <>
-                <ImageUp className="h-8 w-8 text-primary-400" aria-hidden="true" />
-                <p className="mt-2 text-sm text-gray-600">
+                <ImageUp className="h-8 w-8 text-sunny-600" aria-hidden="true" />
+                <p className="mt-2 text-sm text-stone-600">
                   Плъзнете файл тук или{' '}
                   <label
                     htmlFor={idCardImageId}
-                    className="cursor-pointer font-medium text-primary-600 hover:text-primary-700"
+                    className="cursor-pointer font-semibold text-terracotta-600 underline decoration-terracotta-300 decoration-2 underline-offset-2 transition-colors hover:text-terracotta-700"
                   >
                     изберете от компютъра
                   </label>
@@ -611,26 +693,50 @@ export const ApplyPage = () => {
           </div>
 
           {errors.idCardImage && (
-            <p id={idCardImageErrorId} className="mt-2 text-sm text-red-600">
+            <p id={idCardImageErrorId} className="mt-2 text-sm text-terracotta-600">
               {errors.idCardImage}
             </p>
           )}
-        </div>
+        </motion.div>
 
-        {submitError && (
-          <p role="alert" className="text-sm font-medium text-red-600">
-            {submitError}
-          </p>
-        )}
+        <motion.div variants={fadeUp} className="space-y-4">
+          {submitError && (
+            <div
+              role="alert"
+              className="flex items-start gap-3 rounded-2xl bg-terracotta-50 p-4 ring-1 ring-terracotta-200"
+            >
+              <CircleAlert
+                className="mt-0.5 h-5 w-5 shrink-0 text-terracotta-600"
+                aria-hidden="true"
+              />
+              <p className="text-sm font-medium text-terracotta-700">{submitError}</p>
+            </div>
+          )}
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full rounded-lg bg-accent-500 px-4 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-accent-600 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-accent-500/50 focus:ring-offset-2 disabled:pointer-events-none disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-sm sm:text-base"
-        >
-          {isSubmitting ? 'Изпращане...' : 'Изпрати кандидатурата'}
-        </button>
-      </form>
+          <motion.button
+            whileHover={shouldReduceMotion || isSubmitting ? undefined : { scale: 1.02 }}
+            whileTap={shouldReduceMotion || isSubmitting ? undefined : { scale: 0.98 }}
+            type="submit"
+            disabled={isSubmitting}
+            className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-terracotta-500 px-4 py-3.5 text-sm font-bold text-white shadow-[0_4px_0_0_var(--color-terracotta-700)] transition-colors duration-200 hover:bg-terracotta-600 focus:outline-none focus:ring-4 focus:ring-terracotta-200 disabled:pointer-events-none disabled:opacity-60 disabled:shadow-none sm:text-base"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                Изпращане...
+              </>
+            ) : (
+              <>
+                Изпрати кандидатурата
+                <ArrowRight
+                  className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1"
+                  aria-hidden="true"
+                />
+              </>
+            )}
+          </motion.button>
+        </motion.div>
+      </motion.form>
     </div>
   )
 }

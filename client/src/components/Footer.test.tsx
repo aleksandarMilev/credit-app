@@ -18,4 +18,15 @@ describe('Footer', () => {
       '/calculator',
     )
   })
+
+  it('renders links to the legal info pages with the correct hrefs', () => {
+    renderWithProviders(<Footer />)
+
+    expect(screen.getByRole('link', { name: 'Общи условия' })).toHaveAttribute('href', '/terms')
+    expect(screen.getByRole('link', { name: 'Политика за поверителност' })).toHaveAttribute(
+      'href',
+      '/privacy',
+    )
+    expect(screen.getByRole('link', { name: 'ЧЗВ' })).toHaveAttribute('href', '/faq')
+  })
 })

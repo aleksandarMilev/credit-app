@@ -24,7 +24,9 @@ public class FileStorageService(
 
         try
         {
-            await content.CopyToAsync(fileStream, cancellationToken);
+            await content.CopyToAsync(
+                fileStream,
+                cancellationToken);
         }
         catch
         {
@@ -69,10 +71,17 @@ public class FileStorageService(
             ? uploadsRootPath
             : uploadsRootPath + Path.DirectorySeparatorChar;
 
-        var combinedPath = Path.Combine(uploadsRootPath, relativePath);
+        var combinedPath = Path.Combine(
+            uploadsRootPath,
+            relativePath);
+
         var fullPath = Path.GetFullPath(combinedPath);
 
-        if (!fullPath.StartsWith(normalizedRoot, StringComparison.Ordinal))
+        var escapesTheUploadsRoot = !fullPath.StartsWith(
+            normalizedRoot,
+            StringComparison.Ordinal);
+
+        if (escapesTheUploadsRoot)
         {
             throw new InvalidOperationException("Resolved path escapes the uploads root.");
         }
