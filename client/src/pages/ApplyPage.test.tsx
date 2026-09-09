@@ -236,14 +236,14 @@ describe('ApplyPage', () => {
     renderApplyPage()
     const dropzone = getDropzone()
 
-    expect(dropzone.className).not.toContain('border-primary-500')
+    expect(dropzone.className).not.toContain('border-sunny-500')
 
     fireEvent.dragOver(dropzone, { dataTransfer: { files: createFileList([]) } })
-    expect(dropzone.className).toContain('border-primary-500')
-    expect(dropzone.className).toContain('bg-primary-100/60')
+    expect(dropzone.className).toContain('border-sunny-500')
+    expect(dropzone.className).toContain('bg-sunny-100/60')
 
     fireEvent.dragLeave(dropzone)
-    expect(dropzone.className).not.toContain('border-primary-500')
+    expect(dropzone.className).not.toContain('border-sunny-500')
   })
 
   it('clears the drag-over visual state after a drop', () => {
@@ -251,12 +251,12 @@ describe('ApplyPage', () => {
     const dropzone = getDropzone()
 
     fireEvent.dragOver(dropzone, { dataTransfer: { files: createFileList([]) } })
-    expect(dropzone.className).toContain('border-primary-500')
+    expect(dropzone.className).toContain('border-sunny-500')
 
     fireEvent.drop(dropzone, {
       dataTransfer: { files: createFileList([createValidIdCardFile()]) },
     })
 
-    expect(dropzone.className).not.toContain('border-primary-500')
+    expect(dropzone.className).not.toContain('border-sunny-500')
   })
 })

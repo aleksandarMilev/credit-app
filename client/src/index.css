@@ -24,4 +24,45 @@
   --color-accent-800: #92400e;
   --color-accent-900: #78350f;
   --color-accent-950: #451a03;
+
+  /* Homepage creative-direction palette — warm/saturated, deliberately distinct
+     from the primary/accent tokens above so it stays scoped to the pages that
+     opt into it until the direction is approved for the rest of the app. */
+  --color-cream: #fbf3e7;
+  --color-cream-200: #f3e5cd;
+
+  --color-terracotta-50: #fdf1ec;
+  --color-terracotta-100: #fbe1d5;
+  --color-terracotta-200: #f6c3ac;
+  --color-terracotta-300: #f0a17e;
+  --color-terracotta-400: #ea7f58;
+  --color-terracotta-500: #e2593a;
+  --color-terracotta-600: #c8432a;
+  --color-terracotta-700: #a23420;
+  --color-terracotta-800: #7d2818;
+  --color-terracotta-900: #5c1d12;
+  --color-terracotta-950: #341009;
+
+  --color-pine-50: #eaf5f1;
+  --color-pine-100: #cde8df;
+  --color-pine-200: #9bd1c0;
+  --color-pine-300: #66b69f;
+  --color-pine-400: #349981;
+  --color-pine-500: #157a67;
+  --color-pine-600: #0f6354;
+  --color-pine-700: #0c4f43;
+  --color-pine-800: #0a3e36;
+  --color-pine-900: #072d27;
+  --color-pine-950: #041a17;
+
+  --color-sunny-50: #fff9e8;
+  --color-sunny-100: #fff0c2;
+  --color-sunny-200: #ffe28a;
+  --color-sunny-300: #ffd24e;
+  --color-sunny-400: #ffc020;
+  --color-sunny-500: #f6a609;
+  --color-sunny-600: #d98a05;
+  --color-sunny-700: #b36c04;
+  --color-sunny-800: #8a5203;
+  --color-sunny-900: #613902;
 }

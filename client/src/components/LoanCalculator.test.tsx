@@ -25,9 +25,18 @@ describe('LoanCalculator', () => {
 
     await setLoanInputs('1200', '12')
 
-    expect(screen.getByText(normalizeWhitespace(formatCurrency(100)))).toBeInTheDocument()
-    expect(screen.getByText(normalizeWhitespace(formatCurrency(1200)))).toBeInTheDocument()
-    expect(screen.getByText(normalizeWhitespace(formatCurrency(0)))).toBeInTheDocument()
+    // The result figures count up to their new value via a framer-motion
+    // animation rather than snapping instantly, so wait for it to settle
+    // instead of asserting on the text synchronously.
+    expect(
+      await screen.findByText(normalizeWhitespace(formatCurrency(100)), {}, { timeout: 2000 }),
+    ).toBeInTheDocument()
+    expect(
+      await screen.findByText(normalizeWhitespace(formatCurrency(1200)), {}, { timeout: 2000 }),
+    ).toBeInTheDocument()
+    expect(
+      await screen.findByText(normalizeWhitespace(formatCurrency(0)), {}, { timeout: 2000 }),
+    ).toBeInTheDocument()
   })
 
   it('does not render an apply button when onApply is not provided', () => {

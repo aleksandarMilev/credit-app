@@ -6,9 +6,12 @@ import { AdminInterestRatePage } from '@/pages/AdminInterestRatePage'
 import { AdminQueuePage } from '@/pages/AdminQueuePage'
 import { ApplyPage } from '@/pages/ApplyPage'
 import { CalculatorPage } from '@/pages/CalculatorPage'
+import { FaqPage } from '@/pages/FaqPage'
 import { HomePage } from '@/pages/HomePage'
 import { LoginPage } from '@/pages/LoginPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
+import { PrivacyPolicyPage } from '@/pages/PrivacyPolicyPage'
+import { TermsOfUsePage } from '@/pages/TermsOfUsePage'
 import { ProtectedRoute } from '@/router/ProtectedRoute'
 
 export const router = createBrowserRouter([
@@ -27,6 +30,18 @@ export const router = createBrowserRouter([
       {
         path: 'apply',
         element: <ApplyPage />,
+      },
+      {
+        path: 'privacy',
+        element: <PrivacyPolicyPage />,
+      },
+      {
+        path: 'terms',
+        element: <TermsOfUsePage />,
+      },
+      {
+        path: 'faq',
+        element: <FaqPage />,
       },
     ],
   },
