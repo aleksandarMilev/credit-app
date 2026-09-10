@@ -1,7 +1,7 @@
 import { useId, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, HelpCircle } from 'lucide-react'
 
 interface FaqEntry {
   question: string
@@ -44,7 +44,10 @@ const faqEntries: FaqEntry[] = [
       <>
         Да — данните ви се обработват отговорно, а ЕГН се съхранява в криптиран вид. Повече
         подробности ще намерите в{' '}
-        <Link to="/privacy" className="text-primary-600 underline hover:text-primary-700">
+        <Link
+          to="/privacy"
+          className="font-semibold text-terracotta-600 underline decoration-terracotta-300 decoration-2 underline-offset-2 transition-colors hover:text-terracotta-700"
+        >
           Политиката за поверителност
         </Link>
         .
@@ -62,7 +65,7 @@ const FaqAccordionItem = ({ entry }: FaqAccordionItemProps) => {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
-    <div className="border-b border-gray-200 py-4">
+    <div className="rounded-3xl bg-white shadow-lg ring-1 ring-stone-900/5">
       <button
         type="button"
         aria-expanded={isOpen}
@@ -70,35 +73,54 @@ const FaqAccordionItem = ({ entry }: FaqAccordionItemProps) => {
         onClick={() => {
           setIsOpen((current) => !current)
         }}
-        className="flex w-full items-center justify-between gap-4 text-left"
+        className="flex w-full items-center justify-between gap-4 rounded-3xl px-6 py-5 text-left transition-colors hover:bg-pine-50/40 focus:outline-none focus-visible:ring-4 focus-visible:ring-pine-200"
       >
-        <span className="font-semibold text-gray-900">{entry.question}</span>
-        <ChevronDown
-          aria-hidden="true"
-          className={`h-5 w-5 shrink-0 text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-        />
+        <span className="text-base font-bold text-stone-900 sm:text-lg">{entry.question}</span>
+        <span
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-pine-50 text-pine-700 ring-1 ring-pine-100 transition-transform duration-300 ${
+            isOpen ? 'rotate-180' : ''
+          }`}
+        >
+          <ChevronDown className="h-4 w-4" aria-hidden="true" />
+        </span>
       </button>
-      {isOpen && (
-        <p id={contentId} className="mt-2 text-gray-600">
-          {entry.answer}
-        </p>
-      )}
+
+      <div
+        className="grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none"
+        style={{ gridTemplateRows: isOpen ? '1fr' : '0fr' }}
+      >
+        <div className="overflow-hidden">
+          <p id={contentId} className="px-6 pb-5 text-base leading-relaxed text-stone-600">
+            {entry.answer}
+          </p>
+        </div>
+      </div>
     </div>
   )
 }
 
 export const FaqPage = () => {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
-      <h1 className="text-3xl font-bold text-gray-900">Често задавани въпроси</h1>
-      <p className="mt-2 text-gray-600">
-        Отговори на най-честите въпроси на кандидатите за кредит.
-      </p>
+    <div className="bg-cream px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+      <div className="mx-auto max-w-3xl">
+        <div className="text-center">
+          <span className="inline-flex items-center gap-2 rounded-full bg-pine-50 px-4 py-1.5 text-sm font-semibold text-pine-700 ring-1 ring-pine-200">
+            <HelpCircle className="h-4 w-4" aria-hidden="true" />
+            Въпроси и отговори
+          </span>
+          <h1 className="mt-5 text-3xl font-extrabold tracking-tight text-stone-900 sm:text-4xl">
+            Често задавани въпроси
+          </h1>
+          <p className="mt-3 text-base text-stone-600 sm:text-lg">
+            Отговори на най-честите въпроси на кандидатите за кредит.
+          </p>
+        </div>
 
-      <div className="mt-8">
-        {faqEntries.map((entry) => (
-          <FaqAccordionItem key={entry.question} entry={entry} />
-        ))}
+        <div className="mt-10 space-y-4">
+          {faqEntries.map((entry) => (
+            <FaqAccordionItem key={entry.question} entry={entry} />
+          ))}
+        </div>
       </div>
     </div>
   )

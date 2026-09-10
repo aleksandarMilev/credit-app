@@ -4,7 +4,7 @@ import { Footer } from '@/components/Footer'
 
 export const RootLayout = () => {
   return (
-    <div className="flex min-h-screen flex-col bg-white text-gray-900">
+    <div className="flex min-h-screen flex-col bg-cream text-stone-900">
       <Header />
       <main>
         <Outlet />

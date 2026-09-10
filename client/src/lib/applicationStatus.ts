@@ -25,10 +25,10 @@ export const getStatusLabel = (status: ApplicationStatusValue): string => {
 export const getStatusBadgeClassName = (status: ApplicationStatusValue): string => {
   switch (status) {
     case APPLICATION_STATUS.Pending:
-      return 'bg-accent-100 text-accent-800'
+      return 'bg-sunny-100 text-sunny-800'
     case APPLICATION_STATUS.Approved:
-      return 'bg-green-100 text-green-800'
+      return 'bg-pine-100 text-pine-800'
     case APPLICATION_STATUS.Rejected:
-      return 'bg-red-100 text-red-800'
+      return 'bg-terracotta-100 text-terracotta-800'
   }
 }
