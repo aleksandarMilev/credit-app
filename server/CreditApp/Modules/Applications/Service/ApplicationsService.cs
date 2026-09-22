@@ -73,8 +73,9 @@ public class ApplicationsService(
         var application = await data
             .Applications
             .AsNoTracking()
+            .Where(a => a.Id == id)
+            .Select(static a => a.ToApplicationDetailServiceModel())
             .FirstOrDefaultAsync(
-                a => a.Id == id,
                 cancellationToken);
 
         if (application is null)
@@ -83,35 +84,35 @@ public class ApplicationsService(
                 new ApplicationNotFoundError());
         }
 
-        return Result.Ok(application.ToApplicationDetailServiceModel());
+        return Result.Ok(application);
     }
 
     public async Task<Result<ApplicationDocumentServiceModel>> GetDocument(
         Guid id,
         CancellationToken cancellationToken = default)
     {
-        var application = await data
+        var applicationIdCardImagePath = await data
             .Applications
             .AsNoTracking()
-            .FirstOrDefaultAsync(
-                a => a.Id == id,
-                cancellationToken);
+            .Where(a => a.Id == id)
+            .Select(static a => a.IdCardImagePath)
+            .FirstOrDefaultAsync(cancellationToken);
 
-        if (application is null)
+        if (applicationIdCardImagePath is null)
         {
             return Result.Fail<ApplicationDocumentServiceModel>(
                 new ApplicationNotFoundError());
         }
 
         var content = await fileStorage.Read(
-            application.IdCardImagePath,
+            applicationIdCardImagePath,
             cancellationToken);
 
-        var contentType = GetContentType(application.IdCardImagePath);
+        var contentType = GetContentType(applicationIdCardImagePath);
         var serviceModel = new ApplicationDocumentServiceModel(
             content,
             contentType,
-            application.IdCardImagePath);
+            applicationIdCardImagePath);
 
         return Result.Ok(serviceModel);
     }
@@ -135,7 +136,7 @@ public class ApplicationsService(
         var hasPendingApplication = await data
             .Applications
             .AsNoTracking()
-            .Where(a => a.Status == ApplicationStatus.Pending)
+            .Where(static a => a.Status == ApplicationStatus.Pending)
             .Select(static a => a.Egn)
             .ToListAsync(cancellationToken);
 
@@ -282,19 +283,6 @@ public class ApplicationsService(
         Guid id,
         CancellationToken cancellationToken = default)
     {
-        var application = await data
-            .Applications
-            .AsNoTracking()
-            .FirstOrDefaultAsync(
-                a => a.Id == id,
-                cancellationToken);
-
-        if (application is null)
-        {
-            return Result.Fail(
-                new ApplicationNotFoundError());
-        }
-
         var deletedOn = DateTime.UtcNow;
         var deletedBy = userService.GetUsername();
 
@@ -357,9 +345,6 @@ public class ApplicationsService(
             fileStorage.Delete(application.IdCardImagePath);
         }
 
-        // Bypasses the ChangeTracker entirely — RemoveRange would route through
-        // CreditAppDbContext.ApplyAuditInfo, which intercepts every Deleted-state IDeletableEntity
-        // and turns it back into a soft-delete (IsDeleted=true) instead of actually removing the row.
         return await data
             .Applications
             .IgnoreQueryFilters()
