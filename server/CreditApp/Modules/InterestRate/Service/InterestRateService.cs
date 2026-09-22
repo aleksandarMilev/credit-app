@@ -20,6 +20,7 @@ public class InterestRateService(
         var rate = await data
             .InterestRates
             .AsNoTracking()
+            .Select(static a => a.ToInterestRateServiceModel())
             .FirstOrDefaultAsync(cancellationToken);
 
         if (rate is null)
@@ -28,7 +29,7 @@ public class InterestRateService(
                 new InterestRateNotConfiguredError());
         }
 
-        return Result.Ok(rate.ToInterestRateServiceModel());
+        return Result.Ok(rate);
     }
 
     public async Task<Result<InterestRateServiceModel>> UpdateRate(
@@ -50,7 +51,7 @@ public class InterestRateService(
             .ExecuteUpdateAsync(
                 setters => setters
                     .SetProperty(
-                        r => r.AnnualRatePercent,
+                        static r => r.AnnualRatePercent,
                         serviceModel.AnnualRatePercent)
                     .SetProperty(r => r.ModifiedOn, modifiedOn)
                     .SetProperty(r => r.ModifiedBy, modifiedBy),
