@@ -60,19 +60,7 @@ public class CreditAppDbContext(
                 var utcNow = DateTime.UtcNow;
                 var username = userService.GetUsername();
 
-                if (entry.State == EntityState.Deleted &&
-                    entry.Entity is IDeletableEntity deletableEntity)
-                {
-                    deletableEntity.DeletedOn = utcNow;
-                    deletableEntity.DeletedBy = username;
-                    deletableEntity.IsDeleted = true;
-
-                    entry.State = EntityState.Modified;
-
-                    return;
-                }
-
-                if (entry.Entity is IDeletableEntity entity)
+                if (entry.Entity is IEntity entity)
                 {
                     if (entry.State == EntityState.Added)
                     {
