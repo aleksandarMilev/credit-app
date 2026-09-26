@@ -37,7 +37,8 @@ export const LoanCalculator = ({ annualInterestRate, onApply }: LoanCalculatorPr
   const termMonths = Number(termInput)
 
   const amountIsValid = Number.isFinite(amount) && amount > 0 && amount <= MAX_LOAN_AMOUNT
-  const termIsValid = Number.isFinite(termMonths) && termMonths > 0 && termMonths <= MAX_TERM_MONTHS
+  const termIsValid =
+    Number.isFinite(termMonths) && termMonths > 0 && termMonths <= MAX_TERM_MONTHS
   const hasValidInput = amountIsValid && termIsValid
 
   const { monthlyPayment, totalRepayment, totalInterest } = hasValidInput

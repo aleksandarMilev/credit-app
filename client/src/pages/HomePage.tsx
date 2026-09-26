@@ -262,9 +262,7 @@ export const HomePage = () => {
               <motion.li
                 key={step.title}
                 variants={fadeUp}
-                whileHover={
-                  shouldReduceMotion ? undefined : { y: -6, rotate: index % 2 === 0 ? -1.5 : 1.5 }
-                }
+                whileHover={shouldReduceMotion ? undefined : { y: -6, rotate: index % 2 === 0 ? -1.5 : 1.5 }}
                 className={`relative flex flex-col items-center rounded-3xl bg-white p-6 text-center shadow-sm ring-1 ring-stone-900/5 transition-shadow duration-200 hover:shadow-lg sm:items-start sm:text-left ${stepLayout[index % stepLayout.length]}`}
               >
                 <span
@@ -317,9 +315,7 @@ export const HomePage = () => {
                 key={benefit.title}
                 variants={fadeUp}
                 whileHover={
-                  shouldReduceMotion
-                    ? undefined
-                    : { y: -8, rotate: index === 1 ? 0 : index === 0 ? -1.5 : 1.5 }
+                  shouldReduceMotion ? undefined : { y: -8, rotate: index === 1 ? 0 : index === 0 ? -1.5 : 1.5 }
                 }
                 className={`rounded-3xl bg-cream p-7 shadow-lg ${
                   index === 0

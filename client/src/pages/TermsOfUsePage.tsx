@@ -4,15 +4,7 @@
 // this codebase (see product-description.md). Not legal advice.
 
 import type { LucideIcon } from 'lucide-react'
-import {
-  Calculator,
-  FileWarning,
-  Gavel,
-  Mail,
-  ScrollText,
-  ShieldOff,
-  UserCheck,
-} from 'lucide-react'
+import { Calculator, FileWarning, Gavel, Mail, ScrollText, ShieldOff, UserCheck } from 'lucide-react'
 
 const LAST_UPDATED_PLACEHOLDER = 'предстои да се уточни при юридически преглед'
 
@@ -70,16 +62,13 @@ export const TermsOfUsePage = () => {
         <div className="mt-10 rounded-3xl bg-white p-6 shadow-lg ring-1 ring-stone-900/5 sm:p-10">
           <p className="text-base leading-relaxed text-stone-600">
             Настоящите Общи условия са примерен шаблон, който урежда по общ начин използването на
-            сайта на КредитApp. Те предстои да бъдат прегледани и допълнени от юрист преди реалното
-            стартиране на услугата.
+            сайта на КредитApp. Те предстои да бъдат прегледани и допълнени от юрист преди
+            реалното стартиране на услугата.
           </p>
 
           <div className="mt-8 space-y-8">
             {sections.map((section) => (
-              <section
-                key={section.title}
-                className="border-t border-stone-100 pt-8 first:border-t-0 first:pt-0"
-              >
+              <section key={section.title} className="border-t border-stone-100 pt-8 first:border-t-0 first:pt-0">
                 <div className="flex items-center gap-3">
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-pine-50 text-pine-700 ring-1 ring-pine-100">
                     <section.icon className="h-5 w-5" aria-hidden="true" />

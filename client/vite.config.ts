@@ -5,11 +5,6 @@ import { resolve } from 'node:path'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  server: {
-    // Set only in docker-compose.dev.yml: file events from a Windows bind
-    // mount don't reach the container, so the dev server has to poll.
-    watch: { usePolling: process.env.VITE_USE_POLLING === 'true' },
-  },
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
