@@ -13,10 +13,7 @@ describe('Footer', () => {
   it('renders a nav link to the calculator page with the correct href', () => {
     renderWithProviders(<Footer />)
 
-    expect(screen.getByRole('link', { name: 'Калкулатор' })).toHaveAttribute(
-      'href',
-      '/calculator',
-    )
+    expect(screen.getByRole('link', { name: 'Калкулатор' })).toHaveAttribute('href', '/calculator')
   })
 
   it('renders links to the legal info pages with the correct hrefs', () => {

@@ -201,9 +201,7 @@ export const AdminApplicationDetailPage = () => {
               <dd className="mt-1 text-sm text-stone-900">{application.phone}</dd>
             </div>
             <div className="sm:col-span-2">
-              <dt className="text-xs font-medium tracking-wide text-stone-500 uppercase">
-                Имейл
-              </dt>
+              <dt className="text-xs font-medium tracking-wide text-stone-500 uppercase">Имейл</dt>
               <dd className="mt-1 text-sm text-stone-900">{application.email}</dd>
             </div>
             <div>

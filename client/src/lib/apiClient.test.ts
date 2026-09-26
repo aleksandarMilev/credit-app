@@ -316,7 +316,10 @@ describe('apiFetchBlob', () => {
 
   it('returns the parsed ProblemDetails error on a non-ok response', async () => {
     stubFetch(
-      createJsonResponse({ status: 404, title: 'Not Found', detail: 'Кандидатурата не е намерена.' }, 404),
+      createJsonResponse(
+        { status: 404, title: 'Not Found', detail: 'Кандидатурата не е намерена.' },
+        404,
+      ),
     )
 
     const result = await apiFetchBlob('/applications/missing-id/document/')

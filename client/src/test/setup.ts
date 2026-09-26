@@ -25,4 +25,3 @@ class MockIntersectionObserver {
 
 ;(globalThis as unknown as { IntersectionObserver: unknown }).IntersectionObserver =
   MockIntersectionObserver
-

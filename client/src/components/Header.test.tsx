@@ -14,10 +14,7 @@ describe('Header', () => {
   it('renders a nav link to the calculator page with the correct href', () => {
     renderWithProviders(<Header />)
 
-    expect(screen.getByRole('link', { name: 'Калкулатор' })).toHaveAttribute(
-      'href',
-      '/calculator',
-    )
+    expect(screen.getByRole('link', { name: 'Калкулатор' })).toHaveAttribute('href', '/calculator')
   })
 
   it('closes the mobile menu when the route changes via navigation outside the menu', async () => {

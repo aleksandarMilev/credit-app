@@ -215,9 +215,7 @@ export const ApplyPage = () => {
   const [egn, setEgn] = useState('')
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
-  const [amountInput, setAmountInput] = useState(
-    prefill ? String(prefill.amount) : DEFAULT_AMOUNT,
-  )
+  const [amountInput, setAmountInput] = useState(prefill ? String(prefill.amount) : DEFAULT_AMOUNT)
   const [termInput, setTermInput] = useState(
     prefill ? String(prefill.termMonths) : DEFAULT_TERM_MONTHS,
   )

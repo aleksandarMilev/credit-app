@@ -247,9 +247,10 @@ describe('ApplyPage', () => {
     fireEvent.drop(getDropzone(), { dataTransfer: { files: createFileList([file]) } })
 
     expect(screen.getByText('id-card.jpg')).toBeInTheDocument()
-    expect(
-      screen.getByAltText('Преглед на качената снимка на личната карта'),
-    ).toHaveAttribute('src', 'blob:mock-preview-url')
+    expect(screen.getByAltText('Преглед на качената снимка на личната карта')).toHaveAttribute(
+      'src',
+      'blob:mock-preview-url',
+    )
   })
 
   it('clears a validation error for the image once a valid file is dropped', async () => {
@@ -263,9 +264,7 @@ describe('ApplyPage', () => {
       dataTransfer: { files: createFileList([createValidIdCardFile()]) },
     })
 
-    expect(
-      screen.queryByText('Снимката на личната карта е задължителна.'),
-    ).not.toBeInTheDocument()
+    expect(screen.queryByText('Снимката на личната карта е задължителна.')).not.toBeInTheDocument()
   })
 
   it('toggles the drag-over visual state on dragOver and dragLeave', () => {
