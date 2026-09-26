@@ -62,3 +62,4 @@ coverage
 *.apk
 *.app
 playwright-report/
+.pnpm-store/
