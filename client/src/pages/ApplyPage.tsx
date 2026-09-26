@@ -7,21 +7,13 @@ import {
   type DragEvent,
   type SyntheticEvent,
 } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { motion, useReducedMotion, type Variants } from 'framer-motion'
-import {
-  ArrowRight,
-  CheckCircle2,
-  CircleAlert,
-  IdCard,
-  ImageUp,
-  Loader2,
-  User,
-  Wallet,
-  X,
-} from 'lucide-react'
+import { ArrowRight, CircleAlert, IdCard, ImageUp, Loader2, User, Wallet, X } from 'lucide-react'
+import { ApplicationSubmittedMessage } from '@/components/ApplicationSubmittedMessage'
 import { apiFetch } from '@/lib/apiClient'
 import { isValidEgn } from '@/lib/egnValidation'
+import { formatCurrency } from '@/lib/formatCurrency'
 import { MAX_LOAN_AMOUNT, MAX_TERM_MONTHS } from '@/lib/loanCalculations'
 
 interface ApplyLocationState {
@@ -39,6 +31,8 @@ const isApplyLocationState = (value: unknown): value is ApplyLocationState =>
 // directly without going through the calculator first.
 const DEFAULT_AMOUNT = '10000'
 const DEFAULT_TERM_MONTHS = '36'
+
+const MIN_REQUESTED_AMOUNT = 1
 
 const NAME_MIN_LENGTH = 2
 const NAME_MAX_LENGTH = 100
@@ -154,8 +148,12 @@ const validateForm = (values: FormValues): FormErrors => {
   const amount = Number(values.amountInput)
   if (!values.amountInput.trim()) {
     errors.requestedAmount = 'Желаната сума е задължителна.'
-  } else if (!Number.isFinite(amount) || amount < 1 || amount > MAX_LOAN_AMOUNT) {
-    errors.requestedAmount = `Желаната сума трябва да е между 1 и ${String(MAX_LOAN_AMOUNT)} лв.`
+  } else if (
+    !Number.isFinite(amount) ||
+    amount < MIN_REQUESTED_AMOUNT ||
+    amount > MAX_LOAN_AMOUNT
+  ) {
+    errors.requestedAmount = `Желаната сума трябва да е между ${formatCurrency(MIN_REQUESTED_AMOUNT)} и ${formatCurrency(MAX_LOAN_AMOUNT)}.`
   }
 
   const term = Number(values.termInput)
@@ -217,9 +215,7 @@ export const ApplyPage = () => {
   const [egn, setEgn] = useState('')
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
-  const [amountInput, setAmountInput] = useState(
-    prefill ? String(prefill.amount) : DEFAULT_AMOUNT,
-  )
+  const [amountInput, setAmountInput] = useState(prefill ? String(prefill.amount) : DEFAULT_AMOUNT)
   const [termInput, setTermInput] = useState(
     prefill ? String(prefill.termMonths) : DEFAULT_TERM_MONTHS,
   )
@@ -336,53 +332,7 @@ export const ApplyPage = () => {
   }
 
   if (isSubmitted) {
-    return (
-      <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-cream px-4 py-12 sm:px-6">
-        <div
-          className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-pine-100 via-cream to-sunny-100"
-          aria-hidden="true"
-        />
-        <div
-          className="pointer-events-none absolute top-[-15%] right-[-10%] -z-10 h-80 w-80 rounded-[55%_45%_40%_60%/40%_60%_45%_55%] bg-terracotta-100/60 blur-3xl"
-          aria-hidden="true"
-        />
-
-        <motion.div
-          initial={shouldReduceMotion ? undefined : { opacity: 0, y: 24, scale: 0.96 }}
-          animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.55, ease: EASE }}
-          className="w-full max-w-lg rounded-3xl bg-white p-8 text-center shadow-2xl ring-1 ring-stone-900/5 sm:p-10"
-        >
-          <motion.span
-            initial={shouldReduceMotion ? undefined : { scale: 0.6, rotate: -8 }}
-            animate={shouldReduceMotion ? undefined : { scale: 1, rotate: 0 }}
-            transition={{ duration: 0.5, delay: 0.15, ease: EASE }}
-            className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-pine-600 text-white shadow-md"
-          >
-            <CheckCircle2 className="h-8 w-8" aria-hidden="true" />
-          </motion.span>
-          <h1 className="mt-6 text-2xl font-extrabold tracking-tight text-stone-900 sm:text-3xl">
-            Кандидатурата е изпратена успешно!
-          </h1>
-          <p className="mt-3 text-base text-stone-600">
-            Изпратихме потвърждение на посочения от вас имейл адрес. Нашият екип ще прегледа
-            заявлението ви и ще се свърже с вас с решение.
-          </p>
-          <motion.span
-            whileHover={shouldReduceMotion ? undefined : { scale: 1.03 }}
-            whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}
-            className="mt-8 inline-block"
-          >
-            <Link
-              to="/"
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-pine-600 px-6 py-3.5 text-base font-bold text-white shadow-[0_4px_0_0_var(--color-pine-800)] transition-colors duration-200 hover:bg-pine-700 focus:outline-none focus:ring-4 focus:ring-pine-200"
-            >
-              Обратно към началната страница
-            </Link>
-          </motion.span>
-        </motion.div>
-      </div>
-    )
+    return <ApplicationSubmittedMessage />
   }
 
   return (

@@ -1,8 +1,18 @@
-import { useId } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
 import { CircleAlert } from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 
 interface DeleteApplicationDialogProps {
+  isOpen: boolean
   applicantName: string
   isPending: boolean
   errorMessage: string | null
@@ -10,69 +20,57 @@ interface DeleteApplicationDialogProps {
   onCancel: () => void
 }
 
-const EASE = [0.22, 1, 0.36, 1] as const
-
 export const DeleteApplicationDialog = ({
+  isOpen,
   applicantName,
   isPending,
   errorMessage,
   onConfirm,
   onCancel,
 }: DeleteApplicationDialogProps) => {
-  const titleId = useId()
-  const errorId = useId()
-  const shouldReduceMotion = useReducedMotion()
+  // Escape and "Отказ" both land here — ignored while the request is in
+  // flight so the dialog can't be dismissed mid-delete.
+  const handleOpenChange = (isNextOpen: boolean) => {
+    if (!isNextOpen && !isPending) {
+      onCancel()
+    }
+  }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/50 px-4">
-      <motion.div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        aria-describedby={errorMessage ? errorId : undefined}
-        initial={shouldReduceMotion ? undefined : { opacity: 0, scale: 0.96, y: 8 }}
-        animate={shouldReduceMotion ? undefined : { opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.2, ease: EASE }}
-        className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl ring-1 ring-stone-900/5"
-      >
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-terracotta-50 text-terracotta-600">
-          <CircleAlert className="h-5 w-5" aria-hidden="true" />
-        </div>
-
-        <h2 id={titleId} className="mt-4 text-base font-semibold text-stone-900">
-          Изтриване на кандидатура
-        </h2>
-        <p className="mt-2 text-sm text-stone-600">
-          Сигурни ли сте, че искате да изтриете кандидатурата на{' '}
-          <span className="font-medium text-stone-900">{applicantName}</span>? Това действие е
-          необратимо.
-        </p>
+    <AlertDialog open={isOpen} onOpenChange={handleOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogMedia className="bg-terracotta-50 text-terracotta-600">
+            <CircleAlert aria-hidden="true" />
+          </AlertDialogMedia>
+          <AlertDialogTitle>Изтриване на кандидатура</AlertDialogTitle>
+          <AlertDialogDescription>
+            Сигурни ли сте, че искате да изтриете кандидатурата на{' '}
+            <span className="font-medium text-foreground">{applicantName}</span>? Това действие е
+            необратимо.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
 
         {errorMessage && (
-          <p id={errorId} role="alert" className="mt-3 text-sm font-medium text-terracotta-600">
+          <p role="alert" className="text-sm font-medium text-destructive">
             {errorMessage}
           </p>
         )}
 
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row-reverse">
-          <button
-            type="button"
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isPending} className="h-11 sm:h-9">
+            Отказ
+          </AlertDialogCancel>
+          <AlertDialogAction
+            variant="destructive"
             disabled={isPending}
             onClick={onConfirm}
-            className="flex-1 rounded-lg bg-terracotta-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-terracotta-700 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-60"
+            className="h-11 sm:h-9"
           >
             {isPending ? 'Изтриване...' : 'Да, изтрий'}
-          </button>
-          <button
-            type="button"
-            disabled={isPending}
-            onClick={onCancel}
-            className="flex-1 rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-stone-700 shadow-sm ring-1 ring-stone-300 transition-colors hover:bg-stone-50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            Отказ
-          </button>
-        </div>
-      </motion.div>
-    </div>
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   )
 }

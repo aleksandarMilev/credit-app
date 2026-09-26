@@ -6,6 +6,7 @@ import { ApplyPage } from '@/pages/ApplyPage'
 import { apiFetch } from '@/lib/apiClient'
 import type * as ApiClientModule from '@/lib/apiClient'
 import type { ApiResult } from '@/lib/apiClient'
+import { formatCurrency } from '@/lib/formatCurrency'
 
 vi.mock('@/lib/apiClient', async (importOriginal) => {
   const actual = await importOriginal<typeof ApiClientModule>()
@@ -16,12 +17,15 @@ vi.mock('@/lib/apiClient', async (importOriginal) => {
 })
 
 const mockedApiFetch = vi.mocked(apiFetch)
+const mockedScrollTo = vi.fn()
 
 // jsdom doesn't implement these — ApplyPage calls createObjectURL to build
-// the selected image's preview thumbnail.
+// the selected image's preview thumbnail, and the confirmation state calls
+// window.scrollTo on mount.
 beforeAll(() => {
   URL.createObjectURL = vi.fn(() => 'blob:mock-preview-url')
   URL.revokeObjectURL = vi.fn()
+  window.scrollTo = mockedScrollTo
 })
 
 // Checksum-correct per ValidEgnAttribute's algorithm — verified against
@@ -147,6 +151,38 @@ describe('ApplyPage', () => {
     expect(mockedApiFetch).not.toHaveBeenCalled()
   })
 
+  it('states the allowed amount range in euro for an out-of-range amount', async () => {
+    const user = userEvent.setup()
+    renderApplyPage()
+
+    await user.clear(screen.getByLabelText('Желана сума'))
+    await user.type(screen.getByLabelText('Желана сума'), '0')
+    await user.click(screen.getByRole('button', { name: 'Изпрати кандидатурата' }))
+
+    const message = screen.getByText(/^Желаната сума трябва да е между/)
+    // Compared via textContent: Intl's grouping separator is a no-break space,
+    // which toHaveTextContent normalises on one side only.
+    expect(message.textContent).toBe(
+      `Желаната сума трябва да е между ${formatCurrency(1)} и ${formatCurrency(1_000_000)}.`,
+    )
+    expect(message).toHaveTextContent('€')
+    expect(message).not.toHaveTextContent('лв')
+  })
+
+  it('scrolls to the top and focuses the confirmation heading after a successful submit', async () => {
+    mockedApiFetch.mockResolvedValue({ ok: true, data: { id: 'application-1' } })
+
+    renderApplyPage()
+    const user = await fillValidForm()
+    await user.click(screen.getByRole('button', { name: 'Изпрати кандидатурата' }))
+
+    const heading = await screen.findByRole('heading', {
+      name: 'Кандидатурата е изпратена успешно!',
+    })
+    expect(heading).toHaveFocus()
+    expect(mockedScrollTo).toHaveBeenCalledWith(0, 0)
+  })
+
   it('submits a FormData payload and shows the confirmation state on success', async () => {
     mockedApiFetch.mockResolvedValue({ ok: true, data: { id: 'application-1' } })
 
@@ -211,9 +247,10 @@ describe('ApplyPage', () => {
     fireEvent.drop(getDropzone(), { dataTransfer: { files: createFileList([file]) } })
 
     expect(screen.getByText('id-card.jpg')).toBeInTheDocument()
-    expect(
-      screen.getByAltText('Преглед на качената снимка на личната карта'),
-    ).toHaveAttribute('src', 'blob:mock-preview-url')
+    expect(screen.getByAltText('Преглед на качената снимка на личната карта')).toHaveAttribute(
+      'src',
+      'blob:mock-preview-url',
+    )
   })
 
   it('clears a validation error for the image once a valid file is dropped', async () => {
@@ -227,9 +264,7 @@ describe('ApplyPage', () => {
       dataTransfer: { files: createFileList([createValidIdCardFile()]) },
     })
 
-    expect(
-      screen.queryByText('Снимката на личната карта е задължителна.'),
-    ).not.toBeInTheDocument()
+    expect(screen.queryByText('Снимката на личната карта е задължителна.')).not.toBeInTheDocument()
   })
 
   it('toggles the drag-over visual state on dragOver and dragLeave', () => {
