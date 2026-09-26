@@ -30,6 +30,7 @@ export const AdminApplicationDetailPage = () => {
   const shouldReduceMotion = useReducedMotion()
 
   const noteId = useId()
+  const noteHintId = useId()
   const mutationErrorId = useId()
 
   const [note, setNote] = useState('')
@@ -42,10 +43,14 @@ export const AdminApplicationDetailPage = () => {
   // mutate(), so a fast double click would otherwise send two requests.
   const isRequestInFlightRef = useRef(false)
 
-  const detailQuery = useApplicationDetailQuery(id ?? '')
+  const deleteMutation = useDeleteApplicationMutation(id ?? '')
+  // Once deleted, the item no longer exists — a re-render before navigation
+  // lands must not fetch it again (see useDeleteApplicationMutation).
+  const detailQuery = useApplicationDetailQuery(id ?? '', {
+    enabled: !deleteMutation.isSuccess,
+  })
   const document = useApplicationDocument(id ?? '')
   const mutation = useUpdateApplicationStatusMutation(id ?? '')
-  const deleteMutation = useDeleteApplicationMutation(id ?? '')
 
   if (!id) {
     return (
@@ -285,6 +290,9 @@ export const AdminApplicationDetailPage = () => {
             <label htmlFor={noteId} className="mt-4 block text-sm font-medium text-stone-700">
               Бележка (незадължително)
             </label>
+            <p id={noteHintId} className="mt-1 text-xs text-stone-500">
+              Бележката е само за вътрешна употреба и не се изпраща на кандидата.
+            </p>
             <textarea
               id={noteId}
               rows={3}
@@ -293,7 +301,7 @@ export const AdminApplicationDetailPage = () => {
               onChange={(event) => {
                 setNote(event.target.value)
               }}
-              aria-describedby={mutation.isError ? mutationErrorId : undefined}
+              aria-describedby={mutation.isError ? `${noteHintId} ${mutationErrorId}` : noteHintId}
               className="mt-1.5 block w-full rounded-lg border border-stone-200 bg-white px-3.5 py-2.5 text-sm text-stone-900 shadow-sm outline-none transition-colors focus:border-pine-500 focus:ring-2 focus:ring-pine-500/30"
             />
 

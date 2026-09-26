@@ -462,6 +462,32 @@ describe('AdminApplicationDetailPage', () => {
     )
   })
 
+  it('does not refetch the deleted application after a successful delete', async () => {
+    useAuthStore.setState({ roles: ['Approver'] })
+    mockedApiFetch.mockImplementation((_path, init) => {
+      if (init?.method === 'DELETE') {
+        return Promise.resolve({ ok: true, data: undefined })
+      }
+      return Promise.resolve({ ok: true, data: createApplicationDetail() })
+    })
+
+    const user = userEvent.setup()
+    renderDetailPage()
+
+    await user.click(await screen.findByRole('button', { name: 'Изтрий' }))
+    const dialog = await screen.findByRole('alertdialog')
+    await user.click(within(dialog).getByRole('button', { name: 'Да, изтрий' }))
+
+    expect(await screen.findByText('Admin queue placeholder')).toBeInTheDocument()
+    // Let any refetch triggered by the cache invalidation settle.
+    await new Promise((resolve) => setTimeout(resolve, 50))
+
+    const detailRequests = mockedApiFetch.mock.calls.filter(
+      ([path, init]) => path === '/applications/app-1/' && init?.method !== 'DELETE',
+    )
+    expect(detailRequests).toHaveLength(1)
+  })
+
   it('shows the backend error inline in the dialog when deletion fails', async () => {
     useAuthStore.setState({ roles: ['Approver'] })
     mockedApiFetch.mockResolvedValueOnce({ ok: true, data: createApplicationDetail() })

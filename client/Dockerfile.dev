@@ -4,6 +4,13 @@ WORKDIR /app
 
 RUN corepack enable
 
+# /app is bind-mounted from the host, so pnpm's default "same filesystem as
+# the project" store would land in client/.pnpm-store. Keep it in the image.
+ENV pnpm_config_store_dir=/pnpm/store
+# No TTY in the container: when node_modules is out of date pnpm reinstalls
+# on `pnpm dev`, and without CI it stops at an interactive purge prompt.
+ENV CI=true
+
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
