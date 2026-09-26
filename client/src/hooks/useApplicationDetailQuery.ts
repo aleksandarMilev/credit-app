@@ -16,9 +16,8 @@ const fetchApplicationDetail = async (id: string): Promise<ApplicationDetail> =>
 
 export const applicationDetailQueryKey = (id: string) => ['applications', id] as const
 
-export const useApplicationDetailQuery = (id: string, { enabled = true } = {}) =>
+export const useApplicationDetailQuery = (id: string) =>
   useQuery({
     queryKey: applicationDetailQueryKey(id),
     queryFn: () => fetchApplicationDetail(id),
-    enabled,
   })

@@ -104,7 +104,9 @@ describe('AdminQueuePage', () => {
 
     renderAdminQueuePage()
 
-    expect(await screen.findByText('Няма кандидатури, отговарящи на филтъра.')).toBeInTheDocument()
+    expect(
+      await screen.findByText('Няма кандидатури, отговарящи на филтъра.'),
+    ).toBeInTheDocument()
   })
 
   it('shows the backend error detail when the fetch fails', async () => {

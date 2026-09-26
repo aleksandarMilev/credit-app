@@ -43,10 +43,7 @@ public class SubmitApplicationWebModel
     [Required(ErrorMessage = "Желаната сума е задължителна.")]
     [Range(
         typeof(decimal), "1", "1000000",
-        // Spelled out rather than {1}/{2}: RangeAttribute prints raw numbers
-        // ("1000000"). Matches the client's bg-BG Intl EUR format, including
-        // its no-break spaces.
-        ErrorMessage = "Желаната сума трябва да е между 1,00 € и 1 000 000,00 €.")]
+        ErrorMessage = "Желаната сума трябва да е между {1} и {2} лв.")]
     public decimal RequestedAmount { get; init; }
 
     [Required(ErrorMessage = "Срокът на кредита е задължителен.")]

@@ -104,7 +104,9 @@ describe('LoginPage', () => {
 
     await user.click(screen.getByRole('button', { name: 'Вход' }))
 
-    expect(screen.getByText('Потребителското име или имейлът е задължителен.')).toBeInTheDocument()
+    expect(
+      screen.getByText('Потребителското име или имейлът е задължителен.'),
+    ).toBeInTheDocument()
     expect(screen.getByText('Паролата е задължителна.')).toBeInTheDocument()
     expect(mockedApiFetch).not.toHaveBeenCalled()
   })
@@ -131,7 +133,9 @@ describe('LoginPage', () => {
     await user.type(screen.getByLabelText('Парола'), 'abc')
     await user.click(screen.getByRole('button', { name: 'Вход' }))
 
-    expect(screen.getByText('Паролата трябва да е между 6 и 128 символа.')).toBeInTheDocument()
+    expect(
+      screen.getByText('Паролата трябва да е между 6 и 128 символа.'),
+    ).toBeInTheDocument()
     expect(mockedApiFetch).not.toHaveBeenCalled()
   })
 

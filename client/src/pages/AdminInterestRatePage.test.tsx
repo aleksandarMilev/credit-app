@@ -67,10 +67,7 @@ describe('AdminInterestRatePage', () => {
   })
 
   it('renders the current rate and metadata once fetched', async () => {
-    mockedApiFetch.mockResolvedValue({
-      ok: true,
-      data: createInterestRate({ annualRatePercent: 9.5 }),
-    })
+    mockedApiFetch.mockResolvedValue({ ok: true, data: createInterestRate({ annualRatePercent: 9.5 }) })
 
     renderPage()
 
@@ -89,7 +86,9 @@ describe('AdminInterestRatePage', () => {
 
     await user.type(input, '0')
     expect(submitButton).toBeDisabled()
-    expect(screen.getByText('Лихвеният процент трябва да бъде между 0 и 100.')).toBeInTheDocument()
+    expect(
+      screen.getByText('Лихвеният процент трябва да бъде между 0 и 100.'),
+    ).toBeInTheDocument()
 
     await user.clear(input)
     await user.type(input, '100')

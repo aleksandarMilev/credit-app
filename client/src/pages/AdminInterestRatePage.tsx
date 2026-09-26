@@ -157,10 +157,7 @@ export const AdminInterestRatePage = () => {
             )}
 
             {mutation.isSuccess && (
-              <p
-                role="status"
-                className="mt-3 flex items-center gap-1.5 text-sm font-medium text-pine-700"
-              >
+              <p role="status" className="mt-3 flex items-center gap-1.5 text-sm font-medium text-pine-700">
                 <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
                 Лихвеният процент е успешно обновен.
               </p>

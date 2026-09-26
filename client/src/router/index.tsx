@@ -1,5 +1,4 @@
 import { createBrowserRouter } from 'react-router-dom'
-import { AppLayout } from '@/layouts/AppLayout'
 import { RootLayout } from '@/layouts/RootLayout'
 import { StaffLayout } from '@/layouts/StaffLayout'
 import { AdminApplicationDetailPage } from '@/pages/AdminApplicationDetailPage'
@@ -17,78 +16,73 @@ import { ProtectedRoute } from '@/router/ProtectedRoute'
 
 export const router = createBrowserRouter([
   {
-    element: <AppLayout />,
+    path: '/',
+    element: <RootLayout />,
     children: [
       {
-        path: '/',
-        element: <RootLayout />,
-        children: [
-          {
-            index: true,
-            element: <HomePage />,
-          },
-          {
-            path: 'calculator',
-            element: <CalculatorPage />,
-          },
-          {
-            path: 'apply',
-            element: <ApplyPage />,
-          },
-          {
-            path: 'privacy',
-            element: <PrivacyPolicyPage />,
-          },
-          {
-            path: 'terms',
-            element: <TermsOfUsePage />,
-          },
-          {
-            path: 'faq',
-            element: <FaqPage />,
-          },
-        ],
+        index: true,
+        element: <HomePage />,
       },
       {
-        path: 'login',
-        element: <LoginPage />,
+        path: 'calculator',
+        element: <CalculatorPage />,
       },
       {
-        element: <ProtectedRoute />,
-        children: [
-          {
-            element: <StaffLayout />,
-            children: [
-              {
-                path: 'admin',
-                element: <AdminQueuePage />,
-              },
-              {
-                path: 'admin/applications/:id',
-                element: <AdminApplicationDetailPage />,
-              },
-            ],
-          },
-        ],
+        path: 'apply',
+        element: <ApplyPage />,
       },
       {
-        element: <ProtectedRoute requiredRole="Approver" />,
-        children: [
-          {
-            element: <StaffLayout />,
-            children: [
-              {
-                path: 'admin/interest-rate',
-                element: <AdminInterestRatePage />,
-              },
-            ],
-          },
-        ],
+        path: 'privacy',
+        element: <PrivacyPolicyPage />,
       },
       {
-        path: '*',
-        element: <NotFoundPage />,
+        path: 'terms',
+        element: <TermsOfUsePage />,
+      },
+      {
+        path: 'faq',
+        element: <FaqPage />,
       },
     ],
+  },
+  {
+    path: 'login',
+    element: <LoginPage />,
+  },
+  {
+    element: <ProtectedRoute />,
+    children: [
+      {
+        element: <StaffLayout />,
+        children: [
+          {
+            path: 'admin',
+            element: <AdminQueuePage />,
+          },
+          {
+            path: 'admin/applications/:id',
+            element: <AdminApplicationDetailPage />,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    element: <ProtectedRoute requiredRole="Approver" />,
+    children: [
+      {
+        element: <StaffLayout />,
+        children: [
+          {
+            path: 'admin/interest-rate',
+            element: <AdminInterestRatePage />,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    path: '*',
+    element: <NotFoundPage />,
   },
 ])

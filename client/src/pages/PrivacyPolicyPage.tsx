@@ -89,10 +89,7 @@ export const PrivacyPolicyPage = () => {
 
           <div className="mt-8 space-y-8">
             {sections.map((section) => (
-              <section
-                key={section.title}
-                className="border-t border-stone-100 pt-8 first:border-t-0 first:pt-0"
-              >
+              <section key={section.title} className="border-t border-stone-100 pt-8 first:border-t-0 first:pt-0">
                 <div className="flex items-center gap-3">
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-pine-50 text-pine-700 ring-1 ring-pine-100">
                     <section.icon className="h-5 w-5" aria-hidden="true" />
