@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowLeft, CircleAlert, ImageOff, Loader2, Trash2 } from 'lucide-react'
@@ -6,6 +6,7 @@ import { useApplicationDetailQuery } from '@/hooks/useApplicationDetailQuery'
 import { useApplicationDocument } from '@/hooks/useApplicationDocument'
 import { useDeleteApplicationMutation } from '@/hooks/useDeleteApplicationMutation'
 import { useUpdateApplicationStatusMutation } from '@/hooks/useUpdateApplicationStatusMutation'
+import { DecisionConfirmDialog } from '@/components/DecisionConfirmDialog'
 import { DeleteApplicationDialog } from '@/components/DeleteApplicationDialog'
 import { StatusBadge } from '@/components/StatusBadge'
 import { formatCurrency } from '@/lib/formatCurrency'
@@ -33,6 +34,13 @@ export const AdminApplicationDetailPage = () => {
 
   const [note, setNote] = useState('')
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false)
+  const [isConfirmingDecision, setIsConfirmingDecision] = useState(false)
+  const [decisionToConfirm, setDecisionToConfirm] = useState<ApplicationDecisionValue>(
+    APPLICATION_DECISION.Approved,
+  )
+  // React Query's isPending reaches the confirm buttons a tick after
+  // mutate(), so a fast double click would otherwise send two requests.
+  const isRequestInFlightRef = useRef(false)
 
   const detailQuery = useApplicationDetailQuery(id ?? '')
   const document = useApplicationDocument(id ?? '')
@@ -96,14 +104,38 @@ export const AdminApplicationDetailPage = () => {
   const application = detailQuery.data
   const isTerminal = application.status !== APPLICATION_STATUS.Pending
 
-  const handleDecision = (decision: ApplicationDecisionValue) => {
-    mutation.mutate({ decision, note })
+  const handleDecisionClick = (decision: ApplicationDecisionValue) => {
+    setDecisionToConfirm(decision)
+    setIsConfirmingDecision(true)
+  }
+
+  // Closes on both outcomes: success swaps the panel for the read-only
+  // decision summary, failure shows the error inline under the note.
+  const handleConfirmDecision = (decision: ApplicationDecisionValue) => {
+    if (isRequestInFlightRef.current) return
+    isRequestInFlightRef.current = true
+
+    mutation.mutate(
+      { decision, note },
+      {
+        onSettled: () => {
+          isRequestInFlightRef.current = false
+          setIsConfirmingDecision(false)
+        },
+      },
+    )
   }
 
   const handleConfirmDelete = () => {
+    if (isRequestInFlightRef.current) return
+    isRequestInFlightRef.current = true
+
     deleteMutation.mutate(undefined, {
       onSuccess: () => {
         void navigate('/admin')
+      },
+      onSettled: () => {
+        isRequestInFlightRef.current = false
       },
     })
   }
@@ -280,7 +312,7 @@ export const AdminApplicationDetailPage = () => {
                 type="button"
                 disabled={mutation.isPending}
                 onClick={() => {
-                  handleDecision(APPLICATION_DECISION.Approved)
+                  handleDecisionClick(APPLICATION_DECISION.Approved)
                 }}
                 className="flex-1 rounded-lg bg-pine-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-pine-700 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-60"
               >
@@ -292,7 +324,7 @@ export const AdminApplicationDetailPage = () => {
                 type="button"
                 disabled={mutation.isPending}
                 onClick={() => {
-                  handleDecision(APPLICATION_DECISION.Rejected)
+                  handleDecisionClick(APPLICATION_DECISION.Rejected)
                 }}
                 className="flex-1 rounded-lg bg-terracotta-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-terracotta-600 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-60"
               >
@@ -305,16 +337,31 @@ export const AdminApplicationDetailPage = () => {
         )}
       </motion.div>
 
-      {isConfirmingDelete && (
-        <DeleteApplicationDialog
-          applicantName={`${application.firstName} ${application.lastName}`}
-          isPending={deleteMutation.isPending}
-          errorMessage={deleteMutation.isError ? deleteMutation.error.message : null}
-          onConfirm={handleConfirmDelete}
-          onCancel={() => {
-            setIsConfirmingDelete(false)
-          }}
-        />
+      {isApprover && (
+        <>
+          <DecisionConfirmDialog
+            isOpen={isConfirmingDecision}
+            decision={decisionToConfirm}
+            applicantName={`${application.firstName} ${application.lastName}`}
+            requestedAmount={application.requestedAmount}
+            requestedTermMonths={application.requestedTermMonths}
+            isPending={mutation.isPending}
+            onConfirm={handleConfirmDecision}
+            onCancel={() => {
+              setIsConfirmingDecision(false)
+            }}
+          />
+          <DeleteApplicationDialog
+            isOpen={isConfirmingDelete}
+            applicantName={`${application.firstName} ${application.lastName}`}
+            isPending={deleteMutation.isPending}
+            errorMessage={deleteMutation.isError ? deleteMutation.error.message : null}
+            onConfirm={handleConfirmDelete}
+            onCancel={() => {
+              setIsConfirmingDelete(false)
+            }}
+          />
+        </>
       )}
     </div>
   )

@@ -60,4 +60,12 @@ export default defineConfig([
       '@typescript-eslint/no-unsafe-member-access': 'off',
     },
   },
+  {
+    // Vendored shadcn/ui code co-exports cva helpers (e.g. buttonVariants)
+    // next to its components — an accepted exception, see CLAUDE.md.
+    files: ['src/components/ui/**/*.tsx'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
 ])

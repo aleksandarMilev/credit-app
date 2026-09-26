@@ -1,4 +1,10 @@
 @import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+/* Light theme only: `dark:` is bound to a .dark class that is never set, so the
+   vendored components' dark: classes stay inert. */
+@custom-variant dark (&:is(.dark *));
 
 @theme {
   --color-primary-50: #eff6ff;
@@ -65,4 +71,62 @@
   --color-sunny-700: #b36c04;
   --color-sunny-800: #8a5203;
   --color-sunny-900: #613902;
+}
+
+/* shadcn/ui semantic tokens, used only by the vendored components in
+   src/components/ui. Values are mapped onto the existing palette (pine /
+   terracotta / stone) so dialogs match the rest of the app. Deliberately
+   omitted from the `shadcn init` output: the --radius-* and --font-sans
+   overrides and the global `*`/body base layer — those would restyle every
+   un-migrated page. */
+@theme inline {
+  --font-heading: var(--font-sans);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: oklch(21.6% 0.006 56.043); /* stone-900 */
+  --card: #ffffff;
+  --card-foreground: oklch(21.6% 0.006 56.043); /* stone-900 */
+  --popover: #ffffff;
+  --popover-foreground: oklch(21.6% 0.006 56.043); /* stone-900 */
+  --primary: #0f6354; /* pine-600 — 7.2:1 with white */
+  --primary-foreground: #ffffff;
+  --secondary: oklch(97% 0.001 106.424); /* stone-100 */
+  --secondary-foreground: oklch(21.6% 0.006 56.043); /* stone-900 */
+  --muted: oklch(97% 0.001 106.424); /* stone-100 */
+  --muted-foreground: oklch(44.4% 0.011 73.639); /* stone-600 */
+  --accent: #eaf5f1; /* pine-50 */
+  --accent-foreground: #0a3e36; /* pine-800 */
+  --destructive: #a23420; /* terracotta-700 — stays AA on the button's 10% tint */
+  --border: oklch(92.3% 0.003 48.717); /* stone-200 */
+  --input: oklch(92.3% 0.003 48.717); /* stone-200 */
+  --ring: #157a67; /* pine-500 */
+}
+
+/* shadcn's base layer, scoped to the vendored components (they all render a
+   data-slot attribute) instead of `*`, so existing pages keep their borders
+   and outlines. */
+@layer base {
+  :where([data-slot], [data-slot] *) {
+    @apply border-border outline-ring/50;
+  }
 }
